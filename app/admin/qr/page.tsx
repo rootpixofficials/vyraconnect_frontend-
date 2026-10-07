@@ -45,7 +45,7 @@ export default function QRManagementPage() {
       setIsGenerating(true);
       await axios.post('http://api.vyraconnect.in/api/admin/qr-batches/bulk-generate', {
         quantity: Number(quantity),
-        product_type: productType
+        productType: productType
       });
       setIsModalOpen(false);
       fetchQRs(); // Refresh the list

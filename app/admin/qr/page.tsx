@@ -28,7 +28,7 @@ export default function QRManagementPage() {
   const fetchQRs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://api.vyraconnect.in/api/admin/qr');
+      const response = await axios.get('http://api.vyraconnect.in/api/admin/qr/list');
       setQrs(response.data?.data || response.data || []);
       setError(null);
     } catch (err: any) {
@@ -43,7 +43,7 @@ export default function QRManagementPage() {
     e.preventDefault();
     try {
       setIsGenerating(true);
-      await axios.post('http://api.vyraconnect.in/api/admin/qr-batches', {
+      await axios.post('http://api.vyraconnect.in/api/admin/qr-batches/bulk-generate', {
         quantity: Number(quantity),
         product_type: productType
       });

@@ -1,19 +1,30 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 
+import axios from 'axios';
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Simple hardcoded login for demonstration (You can replace this with actual backend JWT auth later)
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123') {
-      setIsAuthenticated(true);
-      localStorage.setItem('admin_auth', 'true');
-    } else {
-      setError('Invalid password');
+    try {
+      const res = await axios.post('http://localhost:5000/api/admin/login', {
+        username: 'vyraconnectadmin',
+        password
+      });
+      const data = res.data;
+      
+      if (data.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem('admin_auth', 'true');
+      } else {
+        setError(data.message || 'Invalid password');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Cannot connect to server');
     }
   };
 
@@ -30,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-900">Vyra Admin Login</h1>
             <p className="text-slate-500 mt-2">Enter your password to access the dashboard.</p>
-            <p className="text-xs text-blue-500 mt-1">Hint: Use 'admin123' for now</p>
+            <p className="text-xs text-blue-500 mt-1">Hint: Use 'vyraconnect@123' to login as vyraconnectadmin</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>

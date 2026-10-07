@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 
+import axios from 'axios';
+
 export default function AdminDashboard() {
   const [data, setData] = useState({
     totalCustomers: 0,
@@ -12,10 +14,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/admin/dashboard')
-      .then(res => res.json())
-      .then(json => {
-        setData(json);
+    axios.get('http://localhost:5000/api/admin/dashboard')
+      .then(res => {
+        setData(res.data);
         setLoading(false);
       })
       .catch(err => {
@@ -64,10 +65,10 @@ export default function AdminDashboard() {
           <h3 className="text-lg font-bold text-gray-800 mb-4">Recent QR Assignments</h3>
           <div className="space-y-4">
             {loading && <p className="text-gray-500">Loading...</p>}
-            {!loading && data.recentAssignments.length === 0 && (
+              {!loading && (!data.recentAssignments || data.recentAssignments.length === 0) && (
               <p className="text-gray-500">No recent assignments found.</p>
             )}
-            {data.recentAssignments.map((qr) => (
+            {data.recentAssignments?.map((qr) => (
               <div key={qr.id} className="flex justify-between items-center py-2 border-b last:border-0">
                 <div>
                   <p className="font-medium">{qr.customerName}</p>

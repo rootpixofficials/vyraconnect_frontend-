@@ -5,6 +5,7 @@ import axios from 'axios';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -12,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/admin/login', {
-        username: 'vyraconnectadmin',
+        username,
         password
       });
       const data = res.data;
@@ -40,17 +41,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-900">Vyra Admin Login</h1>
-            <p className="text-slate-500 mt-2">Enter your password to access the dashboard.</p>
-            <p className="text-xs text-blue-500 mt-1">Hint: Use 'vyraconnect@123' to login as vyraconnectadmin</p>
+            <p className="text-slate-500 mt-2">Enter your credentials to access the dashboard.</p>
+            <p className="text-xs text-blue-500 mt-1">Hint: Use 'vyraconnectadmin' & 'vyraconnect@123'</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                placeholder="Admin Username"
+                required
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
                 placeholder="••••••••"
                 required
               />

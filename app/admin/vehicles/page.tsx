@@ -19,7 +19,7 @@ export default function VehiclesPage() {
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch("http://api.vyraconnect.in/api/admin/vehicles");
+        const response = await fetch("https://api.vyraconnect.in/api/admin/vehicles");
         const data = await response.json();
         setVehicles(Array.isArray(data) ? data : data.vehicles || []);
       } catch (error) {

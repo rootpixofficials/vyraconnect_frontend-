@@ -17,7 +17,7 @@ export default function CustomersPage() {
   useEffect(() => {
     async function fetchCustomers() {
       try {
-        const response = await fetch("http://api.vyraconnect.in/api/admin/customers");
+        const response = await fetch("https://api.vyraconnect.in/api/admin/customers");
         const data = await response.json();
         setCustomers(Array.isArray(data) ? data : data.customers || []);
       } catch (error) {

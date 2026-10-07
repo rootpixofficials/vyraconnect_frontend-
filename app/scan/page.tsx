@@ -47,7 +47,7 @@ function ScanPageContent() {
 
     const fetchQRStatus = async () => {
       try {
-        const response = await axios.get(`http://api.vyraconnect.in/api/scan/${token}`);
+        const response = await axios.get(`https://api.vyraconnect.in/api/scan/${token}`);
         setQrData(response.data.qr);
       } catch (err) {
         console.error("Error fetching QR status:", err);
@@ -71,7 +71,7 @@ function ScanPageContent() {
     
     setRegistering(true);
     try {
-      const response = await axios.post(`http://api.vyraconnect.in/api/scan/${token}/register`, formData);
+      const response = await axios.post(`https://api.vyraconnect.in/api/scan/${token}/register`, formData);
       // Assuming successful registration returns the updated QR data or we can switch status locally
       if (qrData) {
         setQrData({

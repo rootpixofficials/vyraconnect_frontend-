@@ -14,7 +14,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://api.vyraconnect.in/api/admin/dashboard')
+    axios.get('https://api.vyraconnect.in/api/admin/dashboard')
       .then(res => {
         setData(res.data);
         setLoading(false);

@@ -5,7 +5,8 @@ import axios from 'axios';
 
 interface QRCode {
   id: string | number;
-  code: string;
+  qr_serial: string;
+  qr_url?: string;
   product_type: string;
   status: string;
   created_at?: string;

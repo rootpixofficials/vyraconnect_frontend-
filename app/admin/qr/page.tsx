@@ -29,7 +29,7 @@ export default function QRManagementPage() {
     try {
       setLoading(true);
       const response = await axios.get('http://api.vyraconnect.in/api/admin/qr/list');
-      setQrs(response.data?.data || response.data || []);
+      setQrs(response.data?.qrs || response.data?.data || (Array.isArray(response.data) ? response.data : []));
       setError(null);
     } catch (err: any) {
       console.error('Failed to fetch QRs:', err);
@@ -100,7 +100,7 @@ export default function QRManagementPage() {
                 qrs.map((qr, idx) => (
                   <tr key={qr.id || idx}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{qr.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{qr.code}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{qr.qr_serial}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{qr.product_type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

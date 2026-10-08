@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-
+import Link from 'next/link';
 import axios from 'axios';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -90,11 +90,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         
         <nav className="flex-1 px-4 space-y-2">
-          <a href="/admin" className="block px-4 py-2 rounded bg-slate-800 text-white">Dashboard</a>
-          <a href="/admin/qr" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">QR Management</a>
-          <a href="/admin/customers" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Customers</a>
-          <a href="/admin/vehicles" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Vehicles</a>
-          <a href="/admin/reports" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Reports</a>
+          <Link href="/admin" className="block px-4 py-2 rounded bg-slate-800 text-white">Dashboard</Link>
+          <Link href="/admin/qr" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">QR Management</Link>
+          <Link href="/admin/customers" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Customers</Link>
+          <Link href="/admin/vehicles" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Vehicles</Link>
+          <Link href="/admin/reports" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Reports</Link>
         </nav>
         
         <div className="p-4">

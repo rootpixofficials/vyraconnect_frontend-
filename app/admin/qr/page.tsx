@@ -11,11 +11,13 @@ interface QRCode {
   customer_id?: string;
   product_type: string;
   status: string;
+  blocked_reason?: string;
   created_at?: string;
 }
 
 export default function QRManagementPage() {
   const [qrs, setQrs] = useState<QRCode[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -45,8 +47,19 @@ export default function QRManagementPage() {
 
   useEffect(() => {
     fetchQRs();
+    fetchCustomers();
   }, []);
 
+  
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get('https://api.vyraconnect.in/api/admin/customers');
+      setCustomers(response.data?.customers || response.data?.data || (Array.isArray(response.data) ? response.data : []));
+    } catch (err) {
+      console.error('Failed to fetch customers:', err);
+    }
+  };
+  
   const fetchQRs = async () => {
     try {
       setLoading(true);

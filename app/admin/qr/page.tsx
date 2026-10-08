@@ -7,6 +7,8 @@ interface QRCode {
   id: string | number;
   qr_serial: string;
   qr_url?: string;
+  qr_image_base64?: string;
+  customer_id?: string;
   product_type: string;
   status: string;
   created_at?: string;
@@ -82,30 +84,40 @@ export default function QRManagementPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer ID</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
+                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
                 </tr>
               ) : qrs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">No QR codes found.</td>
+                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No QR codes found.</td>
                 </tr>
               ) : (
                 qrs.map((qr, idx) => (
                   <tr key={qr.id || idx}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{qr.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {qr.qr_image_base64 ? (
+                        <img src={qr.qr_image_base64} alt={qr.qr_serial} className="h-16 w-16 object-contain rounded border bg-white" />
+                      ) : (
+                        <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded border text-xs text-gray-400">No Img</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" title={String(qr.id)}>{String(qr.id).slice(0, 8)}...</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{qr.qr_serial}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{qr.product_type}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{qr.customer_id ? <span className="text-gray-900 font-medium" title={qr.customer_id}>{qr.customer_id.slice(0,8)}...</span> : <span className="text-gray-400 italic">Unassigned</span>}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        qr.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        qr.status === 'ACTIVATED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                         {qr.status || 'Unknown'}
                       </span>

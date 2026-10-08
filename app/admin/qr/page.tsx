@@ -235,8 +235,21 @@ export default function QRManagementPage() {
                     <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 mt-2">
                       <p className="text-xs text-gray-500 mb-0.5">Assigned Customer</p>
                       {qr.customer_id ? (
-                        <p className="text-sm font-bold text-cyan-700 font-mono">{qr.customer_id}</p>
-                      ) : (
+                          <div className="flex flex-col">
+                            {(() => {
+                              const c = customers.find(cust => cust.id === qr.customer_id);
+                              return c ? (
+                                <>
+                                  <p className="text-sm font-bold text-slate-800">👤 {c.full_name || 'No Name'}</p>
+                                  <p className="text-xs text-slate-500 font-mono mt-0.5">📱 {c.mobile}</p>
+                                  <p className="text-[10px] text-slate-400 font-mono mt-1 break-all">🆔 {qr.customer_id}</p>
+                                </>
+                              ) : (
+                                <p className="text-sm font-bold text-cyan-700 font-mono break-all">{qr.customer_id}</p>
+                              );
+                            })()}
+                          </div>
+                        ) : (
                         <p className="text-sm font-medium text-gray-400 italic">Not Assigned</p>
                       )}
                     </div>

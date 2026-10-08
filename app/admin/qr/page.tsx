@@ -22,7 +22,6 @@ export default function QRManagementPage() {
   // Generate Batch Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(10);
-  const [productType, setProductType] = useState('STICKER');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // View Modal State
@@ -57,7 +56,7 @@ export default function QRManagementPage() {
       setIsGenerating(true);
       await axios.post('https://api.vyraconnect.in/api/admin/qr-batches/bulk-generate', {
         quantity: Number(quantity),
-        productType: productType
+        productType: 'V'
       });
       setIsModalOpen(false);
       fetchQRs(); // Refresh the list
@@ -122,60 +121,64 @@ export default function QRManagementPage() {
           <p className="mt-1 text-sm text-gray-500">Get started by generating a new batch.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {qrs.map((qr, idx) => (
-            <div key={qr.id || idx} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+            <div key={qr.id || idx} className="bg-white rounded-2xl shadow-lg shadow-cyan-900/5 border border-cyan-100 overflow-hidden flex flex-col hover:shadow-cyan-900/10 hover:-translate-y-1 transition-all duration-300">
               
               {/* Card Body - Flex Row */}
-              <div className="flex flex-row p-4 flex-1">
+              <div className="flex flex-row p-5 flex-1 relative overflow-hidden">
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-full opacity-50 pointer-events-none"></div>
                 {/* Left Side - Image */}
-                <div className="w-1/3 flex items-center justify-center bg-gray-50 rounded-lg border p-2 mr-4">
+                <div className="w-1/3 flex items-center justify-center bg-gradient-to-b from-gray-50 to-white rounded-xl border border-gray-100 p-3 mr-6 shadow-sm z-10">
                   {qr.qr_image_base64 ? (
-                    <img src={qr.qr_image_base64} alt={qr.qr_serial} className="w-full object-contain mix-blend-multiply" />
+                    <img src={qr.qr_image_base64} alt={qr.qr_serial} className="w-full object-contain mix-blend-multiply drop-shadow-sm" />
                   ) : (
                     <div className="text-xs text-gray-400 text-center">No Image</div>
                   )}
                 </div>
                 
                 {/* Right Side - Details */}
-                <div className="w-2/3 flex flex-col justify-center space-y-2">
+                <div className="w-2/3 flex flex-col justify-center space-y-3 z-10">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">{qr.product_type}</p>
-                      <h3 className="text-lg font-bold text-gray-900">{qr.qr_serial}</h3>
+                      <p className="text-xs text-cyan-600 font-bold uppercase tracking-widest">{qr.product_type} CODE</p>
+                      <h3 className="text-2xl font-black text-slate-800 mt-1">{qr.qr_serial}</h3>
                     </div>
                   </div>
                   
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-700">Status: </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold inline-block ml-1 ${
-                        qr.status === 'ACTIVATED' ? 'bg-green-100 text-green-800' : 'bg-blue-50 text-blue-700'
-                      }`}>
-                        {qr.status}
-                      </span>
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-700">Customer: </span> 
-                      {qr.customer_id ? <span className="text-indigo-600 font-medium" title={qr.customer_id}>{qr.customer_id.substring(0, 8)}...</span> : <span className="text-gray-400 italic">Unassigned</span>}
-                    </p>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${qr.status === 'ACTIVATED' ? 'bg-emerald-500' : 'bg-cyan-500'}`}></div>
+                      <p className="text-sm font-semibold text-gray-600">
+                        {qr.status === 'ACTIVATED' ? 'Active & Linked' : 'Available for Assignment'}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 mt-2">
+                      <p className="text-xs text-gray-500 mb-0.5">Assigned Customer</p>
+                      {qr.customer_id ? (
+                        <p className="text-sm font-bold text-cyan-700 font-mono">{qr.customer_id}</p>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-400 italic">Not Assigned</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Card Footer - Action Buttons */}
-              <div className="bg-gray-50 px-4 py-3 border-t flex justify-end space-x-3">
+              <div className="bg-slate-50 px-5 py-4 border-t border-cyan-50 flex justify-end space-x-3 items-center">
                 <button 
                   onClick={() => setAssignQrId(qr.id)}
-                  className="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 rounded transition-colors"
+                  className="text-cyan-700 hover:text-cyan-900 text-sm font-bold px-4 py-2 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-colors border border-cyan-100"
                 >
-                  Assign to Customer
+                  Assign Customer
                 </button>
                 <button 
                   onClick={() => setSelectedQr(qr)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-1.5 rounded transition-colors shadow-sm"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors shadow-md shadow-cyan-500/30"
                 >
-                  View
+                  View Details
                 </button>
               </div>
             </div>
@@ -313,22 +316,10 @@ export default function QRManagementPage() {
                         max="1000"
                         value={quantity}
                         onChange={(e) => setQuantity(Number(e.target.value))}
-                        className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"
                         required
                       />
-                    </div>
-                    <div>
-                      <label htmlFor="productType" className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-                      <select
-                        id="productType"
-                        value={productType}
-                        onChange={(e) => setProductType(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                      >
-                        <option value="STICKER">Sticker</option>
-                        <option value="CARD">Card</option>
-                        <option value="KEYCHAIN">Keychain</option>
-                      </select>
+                      <p className="text-xs text-gray-500 mt-2">This will automatically generate standard V-Series QR codes (e.g. V-00001).</p>
                     </div>
                   </div>
                 </div>
@@ -336,14 +327,14 @@ export default function QRManagementPage() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isGenerating}
-                    className="px-5 py-2 bg-indigo-600 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:from-cyan-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50"
                   >
                     {isGenerating ? 'Generating...' : 'Generate Batch'}
                   </button>

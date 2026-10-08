@@ -81,29 +81,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 text-slate-800">
+    <div className="flex h-screen bg-[#f4f7f9] text-slate-800 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-white">Vyra Admin</h2>
-          <p className="text-slate-400 text-sm mt-1">Vehicle QR Platform</p>
+      <aside className="w-64 bg-black text-white flex flex-col border-r border-gray-800 shadow-xl">
+        <div className="p-6 pb-4 flex justify-center border-b border-gray-800">
+          <img src="/vyra-logo.jpg" alt="Vyra Connect" className="w-48 object-contain mix-blend-screen" />
         </div>
         
-        <nav className="flex-1 px-4 space-y-2">
-          <Link href="/admin" className="block px-4 py-2 rounded bg-slate-800 text-white">Dashboard</Link>
-          <Link href="/admin/qr" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">QR Management</Link>
-          <Link href="/admin/customers" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Customers</Link>
-          <Link href="/admin/vehicles" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Vehicles</Link>
-          <Link href="/admin/reports" className="block px-4 py-2 rounded text-slate-300 hover:bg-slate-800">Reports</Link>
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          <Link href="/admin" className="block px-4 py-2.5 rounded-lg hover:bg-cyan-900/30 text-cyan-50 font-medium transition-colors border border-transparent hover:border-cyan-800/50 hover:text-cyan-400">Dashboard</Link>
+          <Link href="/admin/qr" className="block px-4 py-2.5 rounded-lg hover:bg-cyan-900/30 text-cyan-50 font-medium transition-colors border border-transparent hover:border-cyan-800/50 hover:text-cyan-400">QR Management</Link>
+          <Link href="/admin/customers" className="block px-4 py-2.5 rounded-lg hover:bg-cyan-900/30 text-cyan-50 font-medium transition-colors border border-transparent hover:border-cyan-800/50 hover:text-cyan-400">Customers</Link>
+          <Link href="/admin/vehicles" className="block px-4 py-2.5 rounded-lg hover:bg-cyan-900/30 text-cyan-50 font-medium transition-colors border border-transparent hover:border-cyan-800/50 hover:text-cyan-400">Vehicles</Link>
+          <Link href="/admin/reports" className="block px-4 py-2.5 rounded-lg hover:bg-cyan-900/30 text-cyan-50 font-medium transition-colors border border-transparent hover:border-cyan-800/50 hover:text-cyan-400">Reports</Link>
         </nav>
         
-        <div className="p-4">
+        <div className="p-4 border-t border-gray-800">
           <button 
             onClick={() => {
               localStorage.removeItem('admin_auth');
               setIsAuthenticated(false);
             }}
-            className="w-full py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors"
+            className="w-full py-2.5 text-sm text-gray-400 font-medium hover:text-white hover:bg-red-900/40 rounded-lg transition-colors border border-transparent hover:border-red-800/50"
           >
             Logout
           </button>
@@ -112,15 +111,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <header className="bg-white border-b px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Admin Panel</h1>
+        <header className="bg-white border-b px-8 py-4 flex justify-between items-center shadow-sm">
+          <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium">Super Admin</span>
-            <div className="w-8 h-8 rounded-full bg-slate-200"></div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-gray-900">Super Admin</p>
+              <p className="text-xs text-cyan-600">Online</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-md p-0.5">
+              <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                <span className="font-bold text-cyan-600 text-sm">SA</span>
+              </div>
+            </div>
           </div>
         </header>
         
-        <div className="p-8">
+        <div className="p-8 max-w-[1600px] mx-auto">
           {children}
         </div>
       </main>

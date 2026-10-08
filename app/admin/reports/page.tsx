@@ -50,16 +50,16 @@ export default function ReportsPage() {
       // Convert to CSV
       const headers = Object.keys(data[0]).join(",");
       const rows = data.map((row: any) => 
-        Object.values(row).map(val => \`"\${String(val || '').replace(/"/g, '""')}"\`).join(",")
+        Object.values(row).map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(",")
       );
-      const csv = [headers, ...rows].join("\\n");
+      const csv = [headers, ...rows].join("\n");
 
       // Trigger Download
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
-      link.setAttribute("download", \`\${type}_report.csv\`);
+      link.setAttribute("download", `${type}_report.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();

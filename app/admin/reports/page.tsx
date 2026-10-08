@@ -46,15 +46,15 @@ export default function ReportsPage() {
     const rows = data.map((row: any) => 
       Object.values(row).map(val => {
         if (typeof val === 'object') return '""';
-        return \`"\${String(val || '').replace(/"/g, '""')}"\`;
+        return `"${String(val || '').replace(/"/g, '""')}"`;
       }).join(",")
     );
-    const csv = [headers, ...rows].join("\\n");
+    const csv = [headers, ...rows].join("\n");
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", \`\${filename}.csv\`);
+    link.setAttribute("download", `${filename}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -84,10 +84,10 @@ export default function ReportsPage() {
 
       {/* Tabs */}
       <div className="flex space-x-2 overflow-x-auto print:hidden bg-slate-100 p-2 rounded-2xl">
-        <button onClick={() => setActiveTab('dashboard')} className={\`px-6 py-2.5 rounded-xl font-bold transition-all \${activeTab === 'dashboard' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}\`}>📊 Overview</button>
-        <button onClick={() => setActiveTab('customers')} className={\`px-6 py-2.5 rounded-xl font-bold transition-all \${activeTab === 'customers' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}\`}>👥 Customers</button>
-        <button onClick={() => setActiveTab('vehicles')} className={\`px-6 py-2.5 rounded-xl font-bold transition-all \${activeTab === 'vehicles' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}\`}>🚘 Vehicles</button>
-        <button onClick={() => setActiveTab('qrs')} className={\`px-6 py-2.5 rounded-xl font-bold transition-all \${activeTab === 'qrs' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}\`}>🔳 QR Codes</button>
+        <button onClick={() => setActiveTab('dashboard')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab === 'dashboard' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>📊 Overview</button>
+        <button onClick={() => setActiveTab('customers')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab === 'customers' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>👥 Customers</button>
+        <button onClick={() => setActiveTab('vehicles')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab === 'vehicles' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🚘 Vehicles</button>
+        <button onClick={() => setActiveTab('qrs')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab === 'qrs' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🔳 QR Codes</button>
       </div>
 
       {activeTab === 'dashboard' && metrics && (
@@ -170,7 +170,7 @@ export default function ReportsPage() {
               {activeTab} Data Log
             </h3>
             <button 
-              onClick={() => downloadExcel(activeTab === 'customers' ? customersData : activeTab === 'vehicles' ? vehiclesData : qrsData, \`\${activeTab}_report\`)} 
+              onClick={() => downloadExcel(activeTab === 'customers' ? customersData : activeTab === 'vehicles' ? vehiclesData : qrsData, `${activeTab}_report`)} 
               className="px-4 py-2 bg-emerald-100 text-emerald-800 font-bold rounded-xl shadow-sm hover:bg-emerald-200 transition-colors flex items-center print:hidden"
             >
               📥 Export CSV
@@ -193,7 +193,7 @@ export default function ReportsPage() {
                     <td className="p-4 font-medium text-slate-600">{c.mobile || 'N/A'}</td>
                     <td className="p-4 text-slate-600">{c.email || 'N/A'}</td>
                     <td className="p-4">
-                      <span className={\`px-2 py-1 rounded text-[10px] font-black tracking-wide \${c.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}\`}>{c.status}</span>
+                      <span className={`px-2 py-1 rounded text-[10px] font-black tracking-wide ${c.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{c.status}</span>
                     </td>
                     <td className="p-4 text-slate-500 text-sm">{new Date(c.created_at).toLocaleDateString()}</td>
                   </tr>
@@ -204,7 +204,7 @@ export default function ReportsPage() {
                     <td className="p-4 font-medium text-slate-600">{v.vehicle_type}</td>
                     <td className="p-4 font-bold text-slate-700 uppercase">{v.make || '-'} {v.model || ''}</td>
                     <td className="p-4">
-                      <span className={\`px-2 py-1 rounded text-[10px] font-black tracking-wide \${v.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}\`}>{v.status}</span>
+                      <span className={`px-2 py-1 rounded text-[10px] font-black tracking-wide ${v.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{v.status}</span>
                     </td>
                     <td className="p-4 text-slate-500 text-sm">{new Date(v.created_at).toLocaleDateString()}</td>
                   </tr>
@@ -213,10 +213,10 @@ export default function ReportsPage() {
                   <tr key={q.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 font-black text-slate-800">{q.qr_serial}</td>
                     <td className="p-4">
-                      <span className={\`px-2 py-1 rounded text-[10px] font-black tracking-wide 
-                        \${q.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 
+                      <span className={`px-2 py-1 rounded text-[10px] font-black tracking-wide 
+                        ${q.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 
                           q.status === 'BLOCKED' ? 'bg-red-100 text-red-700' : 
-                          q.status === 'AVAILABLE' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-200 text-slate-700'}\`}>
+                          q.status === 'AVAILABLE' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-200 text-slate-700'}`}>
                         {q.status}
                       </span>
                     </td>

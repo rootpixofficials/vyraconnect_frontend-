@@ -270,7 +270,7 @@ export default function VehiclesPage() {
                   <label className="block text-sm font-bold text-slate-700 mb-1">👤 Assign Owner</label>
                   <div className="border-2 border-slate-200 rounded-xl overflow-hidden bg-white max-h-40 overflow-y-auto">
                     {customers.map(c => (
-                      <label key={c.id} className={\`flex items-center p-3 cursor-pointer transition-colors border-b last:border-b-0 \${formData.customer_id === c.id ? 'bg-blue-50' : 'hover:bg-slate-50'}\`}>
+                      <label key={c.id} className={`flex items-center p-3 cursor-pointer transition-colors border-b last:border-b-0 ${formData.customer_id === c.id ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
                         <input type="radio" name="owner" value={c.id} checked={formData.customer_id === c.id} onChange={(e) => setFormData({...formData, customer_id: e.target.value})} className="h-4 w-4 text-blue-600 focus:ring-blue-500" required />
                         <div className="ml-3">
                           <p className="text-sm font-bold text-slate-800">{c.full_name || 'No Name'}</p>

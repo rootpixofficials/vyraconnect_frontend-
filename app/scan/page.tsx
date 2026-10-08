@@ -50,9 +50,9 @@ function ScanPageContent() {
       try {
         const response = await axios.get(`https://api.vyraconnect.in/api/scan/${token}`);
         setQrData(response.data.qr);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching QR status:", err);
-        setError("Failed to fetch QR details. Please try again.");
+        setError(err.response?.data?.error || "Failed to fetch QR details. Please try again.");
       } finally {
         setLoading(false);
       }

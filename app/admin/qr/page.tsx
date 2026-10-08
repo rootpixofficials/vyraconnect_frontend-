@@ -80,6 +80,17 @@ export default function QRManagementPage() {
   };
 
 
+  
+  const handleActivate = async (id: string) => {
+    if (!confirm('Are you sure you want to activate this QR code?')) return;
+    try {
+      await axios.post(`https://api.vyraconnect.in/api/admin/qr/${id}/activate`);
+      fetchQRs();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to activate QR code.');
+    }
+  };
+
   const handleBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!blockQrId || !blockReason.trim()) return;

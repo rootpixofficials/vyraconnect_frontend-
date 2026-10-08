@@ -245,20 +245,36 @@ export default function QRManagementPage() {
               </div>
 
               {/* Card Footer - Action Buttons */}
-              <div className="bg-slate-50 px-5 py-4 border-t border-cyan-50 flex justify-end space-x-3 items-center">
-                <button 
-                  onClick={() => setAssignQrId(qr.id)}
-                  className="text-cyan-700 hover:text-cyan-900 text-sm font-bold px-4 py-2 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-colors border border-cyan-100"
-                >
-                  Assign Customer
-                </button>
-                <button 
-                  onClick={() => setSelectedQr(qr)}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors shadow-md shadow-cyan-500/30"
-                >
-                  View Details
-                </button>
-              </div>
+                <div className="bg-slate-50 px-3 py-3 border-t border-cyan-50 flex justify-between items-center flex-wrap gap-2">
+                  {qr.status === 'AVAILABLE' && (
+                    <button onClick={() => setAssignQrId(qr.id)} className="text-cyan-700 hover:text-cyan-900 text-xs font-bold px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 rounded border border-cyan-100">
+                      Assign
+                    </button>
+                  )}
+                  {qr.status === 'ASSIGNED' && (
+                    <button onClick={() => handleActivate(qr.id)} className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-100">
+                      Activate
+                    </button>
+                  )}
+                  {qr.status === 'ACTIVE' && (
+                    <>
+                      <button onClick={() => setBlockQrId(qr.id)} className="text-orange-700 hover:text-orange-900 text-xs font-bold px-3 py-1.5 bg-orange-50 hover:bg-orange-100 rounded border border-orange-100">
+                        Block
+                      </button>
+                      <button onClick={() => setReplaceQrId(qr.id)} className="text-red-700 hover:text-red-900 text-xs font-bold px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded border border-red-100">
+                        Replace
+                      </button>
+                    </>
+                  )}
+                  {qr.status === 'BLOCKED' && (
+                    <button onClick={() => handleUnblock(qr.id)} className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-100">
+                      Unblock
+                    </button>
+                  )}
+                  <button onClick={() => setSelectedQr(qr)} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded transition-colors shadow-md ml-auto">
+                    View
+                  </button>
+                </div>
             </div>
           ))}
         </div>
@@ -378,30 +394,32 @@ export default function QRManagementPage() {
 
       {/* Assign Customer Modal */}
       {assignQrId && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" onClick={() => setAssignQrId(null)}></div>
-
-            <div className="inline-block bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm w-full relative z-10">
-              <form onSubmit={handleAssign}>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Assign to Customer</h3>
-                  <p className="text-sm text-gray-500 mb-4">Enter the Customer ID to manually assign this QR code.</p>
-                  
-                  <div>
-                    <label htmlFor="customerId" className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
-                    <input
-                      type="text"
-                      id="customerId"
-                      value={assignCustomerId}
-                      onChange={(e) => setAssignCustomerId(e.target.value)}
-                      placeholder="e.g. CUST-123456 or UUID"
-                      className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      required
-                    />
+          <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+              <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" onClick={() => setAssignQrId(null)}></div>
+  
+              <div className="inline-block bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full relative z-10">
+                <form onSubmit={handleAssign}>
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Assign to Customer</h3>
+                    <p className="text-sm text-gray-500 mb-4">Select a customer below to instantly assign this QR code to their account.</p>
+                    
+                    <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50 space-y-2">
+                      {customers.map((c: any) => (
+                        <label key={c.id} className={`flex items-center p-3 rounded-md cursor-pointer transition-colors ${assignCustomerId === c.id ? 'bg-indigo-50 border-indigo-200 border' : 'bg-white border-transparent border hover:bg-gray-100'}`}>
+                          <input type="radio" name="customer" value={c.id} checked={assignCustomerId === c.id} onChange={(e) => setAssignCustomerId(e.target.value)} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300" />
+                          <div className="ml-3 flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">{c.full_name || 'No Name'}</span>
+                            <span className="text-xs text-gray-500">{c.mobile || c.email || 'No contact info'}</span>
+                          </div>
+                        </label>
+                      ))}
+                      {customers.length === 0 && (
+                        <div className="text-center p-4 text-sm text-gray-500">No customers found.</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="bg-gray-50 px-6 py-4 border-t flex justify-end space-x-3">
+                  <div className="bg-gray-50 px-6 py-4 border-t flex justify-end space-x-3">
                   <button
                     type="button"
                     onClick={() => setAssignQrId(null)}

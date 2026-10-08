@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 
 interface Customer {
   id: string;
-  name: string;
+  name?: string;
+  full_name?: string;
   mobile: string;
   email: string;
   status: string;
@@ -50,9 +51,9 @@ export default function CustomersPage() {
             {customers.length > 0 ? (
               customers.map((customer, index) => (
                 <tr key={customer.id || index} className="border-b hover:bg-gray-50">
-                  <td className="p-4">{customer.name}</td>
+                  <td className="p-4">{customer.full_name || customer.name || "Unknown"}</td>
                   <td className="p-4">{customer.mobile}</td>
-                  <td className="p-4">{customer.email}</td>
+                  <td className="p-4">{customer.email || "-"}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       customer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'

@@ -6,9 +6,12 @@ interface Vehicle {
   id: string;
   registrationNumber?: string;
   registration_number?: string;
-  type: string;
+  type?: string;
+  vehicle_type?: string;
   makeModel?: string;
   make_model?: string;
+  make?: string;
+  model?: string;
   status: string;
 }
 
@@ -52,9 +55,9 @@ export default function VehiclesPage() {
             {vehicles.length > 0 ? (
               vehicles.map((vehicle, index) => (
                 <tr key={vehicle.id || index} className="border-b hover:bg-gray-50">
-                  <td className="p-4">{vehicle.registrationNumber || vehicle.registration_number || "-"}</td>
-                  <td className="p-4">{vehicle.type}</td>
-                  <td className="p-4">{vehicle.makeModel || vehicle.make_model || "-"}</td>
+                  <td className="p-4 font-medium text-gray-900">{vehicle.registrationNumber || vehicle.registration_number || "-"}</td>
+                  <td className="p-4">{vehicle.vehicle_type || vehicle.type || "-"}</td>
+                  <td className="p-4">{(vehicle.make || vehicle.model) ? `${vehicle.make || ''} ${vehicle.model || ''}`.trim() : (vehicle.makeModel || vehicle.make_model || "-")}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       vehicle.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'

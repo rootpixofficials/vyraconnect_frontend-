@@ -200,62 +200,97 @@ export default function QRManagementPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {qrs.map((qr, idx) => (
-            <div key={qr.id || idx} className="bg-white rounded-2xl shadow-lg shadow-cyan-900/5 border border-cyan-100 overflow-hidden flex flex-col hover:shadow-cyan-900/10 hover:-translate-y-1 transition-all duration-300">
-              
-              {/* Card Body - Flex Row */}
-              <div className="flex flex-row p-5 flex-1 relative overflow-hidden">
-                <div className="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-full opacity-50 pointer-events-none"></div>
-                {/* Left Side - Image */}
-                <div className="w-1/3 flex items-center justify-center bg-gradient-to-b from-gray-50 to-white rounded-xl border border-gray-100 p-3 mr-6 shadow-sm z-10">
-                  {qr.qr_image_base64 ? (
-                    <img src={qr.qr_image_base64} alt={qr.qr_serial} className="w-full object-contain mix-blend-multiply drop-shadow-sm" />
-                  ) : (
-                    <div className="text-xs text-gray-400 text-center">No Image</div>
-                  )}
-                </div>
-                
-                {/* Right Side - Details */}
-                <div className="w-2/3 flex flex-col justify-center space-y-3 z-10">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs text-cyan-600 font-bold uppercase tracking-widest">{qr.product_type} CODE</p>
-                      <h3 className="text-2xl font-black text-slate-800 mt-1">{qr.qr_serial}</h3>
-                    </div>
+          {qrs.map((qr, idx) => {
+            const isBlocked = qr.status === 'BLOCKED';
+            const isActive = qr.status === 'ACTIVE' || qr.status === 'ACTIVATED';
+            const isAssigned = qr.status === 'ASSIGNED';
+
+            return (
+              <div
+                key={qr.id || idx}
+                className={`rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between border-l-[6px] ${
+                  isBlocked
+                    ? 'border-l-red-500 bg-red-50/50 border border-red-200 hover:border-red-300'
+                    : isActive
+                    ? 'border-l-emerald-500 bg-emerald-50/20 border border-emerald-100 hover:border-emerald-300'
+                    : isAssigned
+                    ? 'border-l-amber-500 bg-amber-50/20 border border-amber-100 hover:border-amber-300'
+                    : 'border-l-cyan-500 bg-white border border-cyan-100 hover:border-cyan-300'
+                }`}
+              >
+                {/* Card Body - Flex Row */}
+                <div className="flex flex-row p-5 flex-1 relative overflow-hidden">
+                  {/* Left Side - Image */}
+                  <div className={`w-1/3 flex items-center justify-center rounded-2xl border p-3 mr-5 shadow-sm z-10 ${
+                    isBlocked ? 'bg-red-100/50 border-red-200' : 'bg-slate-50 border-slate-100'
+                  }`}>
+                    {qr.qr_image_base64 ? (
+                      <img src={qr.qr_image_base64} alt={qr.qr_serial} className="w-full object-contain mix-blend-multiply drop-shadow-sm" />
+                    ) : (
+                      <div className="text-xs text-gray-400 text-center">No Image</div>
+                    )}
                   </div>
                   
-                  <div className="space-y-2 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${qr.status === 'ACTIVATED' ? 'bg-emerald-500' : 'bg-cyan-500'}`}></div>
-                      <p className="text-sm font-semibold text-gray-600">
-                        {qr.status === 'ACTIVATED' ? 'Active & Linked' : 'Available for Assignment'}
-                      </p>
+                  {/* Right Side - Details */}
+                  <div className="w-2/3 flex flex-col justify-center space-y-2.5 z-10">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className={`text-[11px] font-black uppercase tracking-widest ${isBlocked ? 'text-red-600' : 'text-cyan-600'}`}>
+                          {qr.product_type} CODE
+                        </p>
+                        <h3 className={`text-2xl font-black mt-0.5 tracking-tight ${isBlocked ? 'text-red-950' : 'text-slate-800'}`}>
+                          {qr.qr_serial}
+                        </h3>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-black border ${
+                        isBlocked
+                          ? 'bg-red-100 text-red-700 border-red-300'
+                          : isActive
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : isAssigned
+                          ? 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                      }`}>
+                        {isBlocked ? '🚫 BLOCKED' : isActive ? '✅ ACTIVE' : isAssigned ? '⏳ ASSIGNED' : '⚪ AVAILABLE'}
+                      </span>
                     </div>
+
+                    {isBlocked && qr.blocked_reason && (
+                      <div className="p-2 rounded-xl bg-red-100 border border-red-200 text-xs font-bold text-red-800">
+                        ⚠️ Reason: {qr.blocked_reason}
+                      </div>
+                    )}
                     
-                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 mt-2">
-                      <p className="text-xs text-gray-500 mb-0.5">Assigned Customer</p>
+                    <div className={`rounded-xl p-2.5 border text-xs ${
+                      isBlocked ? 'bg-red-100/60 border-red-200/80' : 'bg-slate-50/90 border-slate-100'
+                    }`}>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Assigned Customer</p>
                       {qr.customer_id ? (
-                          <div className="flex flex-col">
-                            {(() => {
-                              const c = customers.find(cust => cust.id === qr.customer_id);
-                              return c ? (
-                                <>
-                                  <p className="text-sm font-bold text-slate-800">👤 {c.full_name || 'No Name'}</p>
-                                  <p className="text-xs text-slate-500 font-mono mt-0.5">📱 {c.mobile}</p>
-                                  <p className="text-[10px] text-slate-400 font-mono mt-1 break-all">🆔 {qr.customer_id}</p>
-                                </>
-                              ) : (
-                                <p className="text-sm font-bold text-cyan-700 font-mono break-all">{qr.customer_id}</p>
-                              );
-                            })()}
-                          </div>
-                        ) : (
-                        <p className="text-sm font-medium text-gray-400 italic">Not Assigned</p>
+                        <div className="flex flex-col">
+                          {(() => {
+                            const c = customers.find(cust => cust.id === qr.customer_id);
+                            return c ? (
+                              <>
+                                <p className={`text-xs font-black truncate ${isBlocked ? 'text-red-900' : 'text-slate-800'}`}>
+                                  👤 {c.full_name || 'No Name'}
+                                </p>
+                                <p className={`text-[11px] font-mono mt-0.5 ${isBlocked ? 'text-red-700 font-bold' : 'text-slate-500'}`}>
+                                  📱 {c.mobile}
+                                </p>
+                              </>
+                            ) : (
+                              <p className={`text-xs font-mono font-bold truncate ${isBlocked ? 'text-red-700' : 'text-cyan-700'}`}>
+                                🆔 {qr.customer_id}
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      ) : (
+                        <p className="text-xs font-medium text-slate-400 italic">Available (Not Assigned)</p>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
 
               {/* Card Footer - Action Buttons */}
                 <div className="bg-slate-50 px-3 py-3 border-t border-cyan-50 flex justify-between items-center flex-wrap gap-2">
@@ -288,8 +323,9 @@ export default function QRManagementPage() {
                     View
                   </button>
                 </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

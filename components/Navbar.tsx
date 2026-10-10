@@ -42,7 +42,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center">
             <Link href="/buy" className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
-              Buy Now
+              Get Vyra
             </Link>
           </div>
         </div>

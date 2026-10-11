@@ -25,8 +25,8 @@ export default function RootLayout({
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-72 h-28 relative">
-                 <Image src="/logo-transparent.png" alt="Vyra Connect" fill className="object-contain object-left" priority />
+              <div className="w-64 h-16 relative">
+                 <Image src="/logo-horizontal.png" alt="Vyra Connect" fill className="object-contain object-left" priority />
               </div>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
@@ -43,6 +43,7 @@ export default function RootLayout({
             <h4 className="font-bold text-white mb-6">Useful Links</h4>
             <ul className="space-y-3 text-gray-400">
               <li><Link href="/" className="hover:text-blue-400 transition">Home</Link></li>
+              <li><Link href="/buy" className="hover:text-cyan-400 font-semibold text-cyan-300 transition flex items-center gap-1.5">★ Buy Vyra Tag</Link></li>
               <li><Link href="/about" className="hover:text-blue-400 transition">About Vyra Connect</Link></li>
               <li><Link href="/how-it-works" className="hover:text-blue-400 transition">How It Works</Link></li>
               <li><Link href="/scan-qr" className="hover:text-blue-400 transition">Scan QR</Link></li>

@@ -1,6 +1,7 @@
 "use client";
 
-import { Car, CheckCircle2, Clock, Cpu, FileText, MapPin, MessageSquare, QrCode, Share2, ShoppingCart, Smartphone, Users } from "lucide-react";
+import Link from "next/link";
+import { Car, CheckCircle2, Clock, Cpu, FileText, MapPin, MessageSquare, QrCode, Share2, ShoppingCart, Smartphone, Users, ArrowRight } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 
 export default function Features() {
@@ -20,23 +21,37 @@ export default function Features() {
   ];
 
   return (
-    <main className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+    <main className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
       <FadeIn className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-white mb-4 font-heading">Features</h1>
-        <p className="text-xl text-gray-400">Everything in the Vyra Connect app & web</p>
+        <h1 className="text-4xl sm:text-6xl font-bold text-white mb-4 font-heading">Features</h1>
+        <p className="text-xl text-gray-400 max-w-2xl mx-auto">Everything in the Vyra Connect ecosystem, designed for ultimate vehicle privacy.</p>
       </FadeIn>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
         {features.map((feature, i) => (
-          <FadeIn key={i} delay={i * 0.05} direction="up">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-3xl hover:bg-white/10 transition hover:border-blue-500/30 shadow-lg h-full">
-              <feature.icon className="w-10 h-10 text-blue-500 mb-6" />
+          <FadeIn key={i} delay={i * 0.04} direction="up">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-3xl hover:bg-white/10 transition hover:border-cyan-500/30 shadow-lg h-full">
+              <feature.icon className="w-10 h-10 text-cyan-400 mb-6" />
               <h3 className="text-xl font-bold text-white mb-3 font-heading">{feature.title}</h3>
               <p className="text-gray-400 leading-relaxed text-sm">{feature.desc}</p>
             </div>
           </FadeIn>
         ))}
       </div>
+
+      <FadeIn delay={0.4} className="text-center">
+        <div className="bg-gradient-to-r from-blue-900/30 via-cyan-900/20 to-black border border-cyan-500/30 rounded-3xl p-8 max-w-2xl mx-auto shadow-xl">
+          <h3 className="text-2xl font-bold text-white mb-3 font-heading">Protect your vehicle today</h3>
+          <p className="text-gray-400 text-sm mb-6">Equip your car or motorcycle with a Vyra Smart Tag and enjoy lifetime privacy.</p>
+          <Link 
+            href="/buy" 
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-8 py-3.5 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:scale-105 transition"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            Order Your Tag (From ₹399)
+          </Link>
+        </div>
+      </FadeIn>
     </main>
   );
 }

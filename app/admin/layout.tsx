@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col border-r border-gray-800 shadow-2xl transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="p-6 pb-4 flex justify-between items-center border-b border-gray-800">
-          <img src="/vyra-logo.jpg" alt="Vyra Connect" className="w-32 object-contain mix-blend-screen" />
+          <img src="/logo-horizontal.png" alt="Vyra Connect" className="w-40 object-contain" />
           <button onClick={closeMobileMenu} className="md:hidden text-gray-400 hover:text-white">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>

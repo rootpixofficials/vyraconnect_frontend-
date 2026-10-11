@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ShieldCheck, Smartphone, ShoppingCart } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 
@@ -35,10 +36,19 @@ export default function About() {
           </FadeIn>
         </ul>
         
-        <FadeIn delay={0.4} direction="up">
+        <FadeIn delay={0.4} direction="up" className="space-y-6">
           <p className="text-gray-300 bg-blue-900/20 p-6 rounded-xl border border-blue-500/20 leading-relaxed shadow-[0_0_30px_rgba(37,99,235,0.1)]">
             Available on Google Play and the App Store. Use the website to find a vehicle, activate a new QR, or buy a Vyra Tag—then manage everything from the mobile app.
           </p>
+          <div className="pt-2">
+            <Link 
+              href="/buy" 
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-8 py-3.5 rounded-full text-base shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 transition-all"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              Order Vyra Smart Tag Now
+            </Link>
+          </div>
         </FadeIn>
       </div>
     </main>

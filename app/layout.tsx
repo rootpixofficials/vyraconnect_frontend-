@@ -25,8 +25,8 @@ export default function RootLayout({
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-64 h-16 relative">
-                 <Image src="/logo-horizontal.png" alt="Vyra Connect" fill className="object-contain object-left" priority />
+              <div className="w-24 h-24 relative">
+                 <Image src="/vyra-logo-navbar.png" alt="Vyra Connect" fill className="object-contain object-left" priority />
               </div>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">

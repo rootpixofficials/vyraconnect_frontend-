@@ -29,12 +29,12 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Brand Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="relative w-48 sm:w-56 h-12 flex items-center justify-start overflow-hidden">
+            <Link href="/" className="relative h-16 w-16 sm:h-[72px] sm:w-[72px] flex items-center justify-center transition-transform hover:scale-105">
               <Image 
-                src="/logo-horizontal.png" 
+                src="/vyra-logo-navbar.png" 
                 alt="Vyra Connect" 
                 fill 
-                className="object-contain object-left" 
+                className="object-contain" 
                 priority 
               />
             </Link>

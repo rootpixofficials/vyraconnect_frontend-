@@ -136,6 +136,7 @@ export default function BuyPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     address: "",
     city: "",
     state: "Kerala",
@@ -162,7 +163,7 @@ export default function BuyPage() {
 *Customer Details:*
 • Name: ${formData.name || 'Not provided yet'}
 • Phone: ${formData.phone || 'Not provided yet'}
-• Address: ${formData.address || 'Not provided'}
+${formData.email ? `• Email: ${formData.email}\n` : ''}• Address: ${formData.address || 'Not provided'}
 • City/State: ${formData.city ? `${formData.city}, ` : ''}${formData.state} - ${formData.pincode}
 • Special Notes: ${formData.notes || 'None'}
 
@@ -171,7 +172,7 @@ Please confirm my order and share delivery details!`;
     return `https://wa.me/919746910890?text=${encodeURIComponent(msg)}`;
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.address) {
       alert("Please enter your Name, Phone Number, and Delivery Address.");
@@ -181,11 +182,43 @@ Please confirm my order and share delivery details!`;
     setIsSubmitting(true);
     const orderId = `VYRA-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Simulate order placement
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch("/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          notes: formData.notes,
+          packName: selectedPack.name,
+          tagsCount: selectedPack.tags,
+          finishName: selectedFinish.name,
+          vehicleType,
+          plateNumber,
+          price: selectedPack.price
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOrderComplete(data.orderId || orderId);
+      } else {
+        // Fallback: still show modal with WhatsApp link so user is never blocked
+        console.warn("Order email warning:", data?.error || data);
+        setOrderComplete(orderId);
+      }
+    } catch (err) {
+      console.error("Order submit network error:", err);
       setOrderComplete(orderId);
-    }, 800);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -541,6 +574,31 @@ Please confirm my order and share delivery details!`;
                       value={formData.pincode} 
                       onChange={handleInputChange} 
                       placeholder="e.g. 673001" 
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-cyan-400 transition" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1.5">Email Address (Optional - For tracking & receipts)</label>
+                    <input 
+                      type="email" 
+                      name="email" 
+                      value={formData.email} 
+                      onChange={handleInputChange} 
+                      placeholder="e.g. rahul@example.com" 
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-cyan-400 transition" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1.5">Delivery Notes / Landmarks (Optional)</label>
+                    <input 
+                      type="text" 
+                      name="notes" 
+                      value={formData.notes} 
+                      onChange={handleInputChange} 
+                      placeholder="e.g. Near City Hospital, Call before delivery" 
                       className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-cyan-400 transition" 
                     />
                   </div>

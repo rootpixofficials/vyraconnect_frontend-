@@ -270,27 +270,30 @@ export default function Home() {
           SECTION 2: OFFICIAL VEHICLE SHOWCASE BANNER ("YOUR VEHICLE. YOUR NETWORK.")
           Designed directly matching official Vyra Connect brand specifications
           ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="py-20 relative overflow-hidden w-full">
         
         {/* Section Header */}
-        <FadeIn className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-cyan-400 rounded-full px-4 py-1 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            Breathtaking Engineering
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white font-heading tracking-tight mb-4">
-            Built for World-Class Machines.
-          </h2>
-          <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-            From bespoke black hypercars to superbikes cutting through night fog — Vyra Connect turns your vehicle into a privately connected fortress.
-          </p>
-        </FadeIn>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <FadeIn className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-cyan-400 rounded-full px-4 py-1 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              Breathtaking Engineering
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white font-heading tracking-tight mb-4">
+              Built for World-Class Machines.
+            </h2>
+            <p className="text-gray-400 text-base md:text-lg leading-relaxed">
+              From bespoke black hypercars to superbikes cutting through night fog — Vyra Connect turns your vehicle into a privately connected fortress.
+            </p>
+          </FadeIn>
+        </div>
 
-        {/* Master Showcase Vehicle Banner (Seamless car/bike with pipeline & pillars) */}
-        <VehicleBanner className="mb-12" />
+        {/* Master Showcase Vehicle Banner (Full Width Edge-to-Edge Image & Normal Borders) */}
+        <VehicleBanner className="w-full mb-16" />
 
         {/* Interactive Live Demo: Experience the Alert in Real-Time */}
-        <FadeIn delay={0.2} className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn delay={0.2}>
           <div className="bg-gradient-to-b from-white/10 via-black/80 to-black border border-cyan-500/30 rounded-[2.5rem] p-6 sm:p-10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(6,182,212,0.15)]">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div>
@@ -416,6 +419,7 @@ export default function Home() {
             </Link>
           </div>
         </FadeIn>
+        </div>
       </section>
 
       {/* =========================================================================

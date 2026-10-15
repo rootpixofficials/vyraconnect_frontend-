@@ -2,6 +2,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
+import FloatingContact from './FloatingContact';
 
 export default function GlobalWrapper({ 
   children, 
@@ -23,6 +24,7 @@ export default function GlobalWrapper({
       <div className="flex-grow pt-24">
         {children}
       </div>
+      <FloatingContact />
       {footer}
     </>
   );

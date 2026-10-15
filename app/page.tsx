@@ -104,8 +104,8 @@ export default function Home() {
           </div>
 
           {/* Right Column: iPhone 18 Pro Scanning Mockup (5-6 cols) */}
-          <div className="lg:col-span-6 relative mt-12 lg:mt-0 flex justify-center items-center">
-            <FadeIn direction="left" delay={0.2} className="relative flex justify-center">
+          <div className="lg:col-span-6 relative mt-12 lg:mt-0 flex justify-center lg:justify-end items-center lg:pr-4 xl:pr-8">
+            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end lg:translate-x-4 xl:translate-x-8">
               
               {/* Ambient Glow behind Phone */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />

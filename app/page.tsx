@@ -6,6 +6,7 @@ import Link from "next/link";
 import Preloader from "@/components/Preloader";
 import FadeIn from "@/components/FadeIn";
 import ContactForm from "@/components/ContactForm";
+import DummyQR from "@/components/DummyQR";
 import { 
   Bell, MessageSquare, PhoneOff, QrCode, CheckCircle2, 
   Star, ShieldCheck, Smartphone, ArrowRight, Car, MapPin, Mail,
@@ -16,6 +17,7 @@ import {
 export default function Home() {
   // State for interactive simulation in Section 2
   const [activeTab, setActiveTab] = useState<"alert" | "chat" | "lost">("alert");
+  const [selectedVehicle, setSelectedVehicle] = useState<"car" | "bike">("car");
   const [simulatedAlertCount, setSimulatedAlertCount] = useState(1);
 
   return (
@@ -100,71 +102,139 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          {/* Right Column: Premium Black Hypercar Showcase (5-6 cols) */}
-          <div className="lg:col-span-6 relative mt-8 lg:mt-0">
-            <FadeIn direction="left" delay={0.2}>
-              <div className="relative rounded-[2.5rem] bg-gradient-to-b from-white/10 via-black/80 to-black/95 p-3 sm:p-4 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_20px_70px_rgba(6,182,212,0.25)] overflow-hidden group">
+          {/* Right Column: iPhone 18 Pro Scanning Mockup (5-6 cols) */}
+          <div className="lg:col-span-6 relative mt-12 lg:mt-0 flex justify-center items-center">
+            <FadeIn direction="left" delay={0.2} className="relative flex justify-center">
+              
+              {/* Ambient Glow behind Phone */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />
+
+              {/* iPhone 18 Pro Frame */}
+              <div className="relative w-[310px] sm:w-[335px] h-[640px] sm:h-[660px] bg-[#070b12] rounded-[3.5rem] border-[10px] sm:border-[12px] border-[#1a1f2c] shadow-[0_25px_80px_rgba(6,182,212,0.3),0_0_50px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col ring-1 ring-white/15">
                 
-                {/* Ambient Underglow within Card */}
-                <div className="absolute -top-10 -right-10 w-72 h-72 bg-cyan-500/20 blur-[90px] rounded-full pointer-events-none" />
-                <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-blue-600/20 blur-[90px] rounded-full pointer-events-none" />
-
-                {/* Main Vehicle Image Container */}
-                <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
-                  <Image 
-                    src="/images/hero-luxury-car.webp" 
-                    alt="Stealth Black Luxury Hypercar with Vyra Connect" 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-1000"
-                    priority 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-
-                  {/* Windshield Target Reticle */}
-                  <div className="absolute top-[38%] left-[44%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <div className="relative flex items-center justify-center">
-                      <span className="w-12 h-12 rounded-full border border-cyan-400/60 animate-ping absolute" />
-                      <span className="w-8 h-8 rounded-full border border-cyan-400 bg-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_#06b6d4]">
-                        <QrCode className="w-4 h-4 text-cyan-300" />
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Holographic Windshield Tag Label */}
-                  <div className="absolute top-4 left-4 bg-black/75 backdrop-blur-md border border-cyan-400/40 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                    <span className="text-[11px] font-mono tracking-wider font-bold text-cyan-300">VYRA SMART TAG: ACTIVE</span>
-                  </div>
-
-                  {/* Bottom Stats Overlay inside image */}
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-mono">
-                    <div className="bg-black/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-xl text-gray-300 flex items-center gap-2">
-                      <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>PRIVACY: 100% ENCRYPTED</span>
-                    </div>
-                    <div className="bg-black/80 backdrop-blur-md border border-cyan-500/30 px-3 py-1.5 rounded-xl text-cyan-400 font-bold flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>RELAY: 0.38s</span>
-                    </div>
+                {/* Dynamic Island */}
+                <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-30 flex items-center justify-between px-3 shadow-inner">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#101b2b] border border-blue-900/60" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[9px] font-mono font-bold text-cyan-300">SCAN</span>
                   </div>
                 </div>
 
-                {/* Sub-bar below vehicle image: Live status telemetry */}
-                <div className="grid grid-cols-3 gap-2 pt-3 text-center">
-                  <div className="bg-black/40 border border-white/5 rounded-xl p-2.5">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Number Shield</div>
-                    <div className="text-xs sm:text-sm font-bold text-emerald-400">Zero Leak</div>
+                {/* Speaker Ear-piece Line */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/10 rounded-full z-30" />
+
+                {/* Phone Screen Inner Container */}
+                <div className="flex-1 bg-gradient-to-b from-[#060c18] via-[#040812] to-black relative flex flex-col pt-14 px-5 pb-6 overflow-hidden">
+                  
+                  {/* Status Bar */}
+                  <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono px-2 mb-4">
+                    <span>9:41</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] tracking-wider text-cyan-400 font-bold">VYRA 5G</span>
+                      <div className="w-5 h-2.5 border border-gray-400 rounded-sm p-0.5 flex items-center">
+                        <div className="w-full h-full bg-white rounded-2xs" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-black/40 border border-white/5 rounded-xl p-2.5">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Parked State</div>
-                    <div className="text-xs sm:text-sm font-bold text-cyan-300">Live Monitored</div>
+
+                  {/* Header in Camera App */}
+                  <div className="text-center mb-3">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-[10px] font-mono uppercase tracking-wider mb-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      Camera Viewfinder
+                    </div>
+                    <h3 className="text-white text-base font-bold font-heading">Scan Vehicle Tag</h3>
+                    <p className="text-gray-400 text-xs">Align the QR code within the frame</p>
                   </div>
-                  <div className="bg-black/40 border border-white/5 rounded-xl p-2.5">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Tag Coating</div>
-                    <div className="text-xs sm:text-sm font-bold text-white">10-Yr Armor</div>
+
+                  {/* Viewfinder Frame with animated laser scan line */}
+                  <div className="relative aspect-square w-full rounded-2xl border border-cyan-500/40 bg-black/60 p-4 flex items-center justify-center shadow-[0_0_35px_rgba(6,182,212,0.15)] overflow-hidden">
+                    
+                    {/* Corner Targeting Brackets */}
+                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-sm" />
+                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-sm" />
+                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-sm" />
+                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-sm" />
+
+                    {/* Animated Scanning Laser Line */}
+                    <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_3px_#06b6d4] animate-scan-line z-20 pointer-events-none" />
+
+                    {/* Virtual Vyra Tag Inside Frame */}
+                    <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-[#0b1322] to-[#040812] border border-cyan-400/30 p-2.5 flex flex-col items-center justify-between shadow-inner">
+                      <div className="flex items-center justify-between w-full px-1">
+                        <div className="relative w-16 h-4">
+                          <Image src="/vyra-logo-navbar.png" alt="Vyra" fill className="object-contain object-left" />
+                        </div>
+                        <span className="text-[8px] font-mono text-cyan-400 font-bold">SMART TAG</span>
+                      </div>
+                      
+                      <div className="p-2 bg-white rounded-lg shadow-md my-0.5">
+                        <DummyQR className="w-20 h-20 p-0" />
+                      </div>
+
+                      <div className="flex items-center justify-between w-full text-[8px] font-mono text-gray-400 px-1">
+                        <span>ID: VYRA-001234</span>
+                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> ACTIVE
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scanned Result Card */}
+                  <div className="mt-3 bg-gradient-to-r from-cyan-950/40 via-black/80 to-blue-950/40 border border-cyan-500/40 rounded-xl p-3 shadow-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-xs font-bold text-white">Vehicle Identified</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-cyan-400 font-bold">0.38s</span>
+                    </div>
+                    <div className="text-[11px] text-gray-300 flex items-center justify-between">
+                      <span>Porsche Taycan 4S</span>
+                      <span className="text-[10px] font-mono text-gray-400">KL-11-AZ-7777</span>
+                    </div>
+
+                    {/* Quick Masked Actions */}
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-md hover:opacity-90">
+                        <PhoneOff className="w-3 h-3 text-black" /> Masked Call
+                      </button>
+                      <button className="bg-white/10 hover:bg-white/15 text-white font-bold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 border border-white/10">
+                        <MessageSquare className="w-3 h-3 text-cyan-400" /> Send Alert
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Home Indicator */}
+                  <div className="mt-auto pt-2">
+                    <div className="w-28 h-1 bg-white/30 rounded-full mx-auto" />
                   </div>
                 </div>
               </div>
+
+              {/* Floating Badges Outside Phone */}
+              <div className="hidden sm:flex absolute -top-4 -right-6 bg-black/90 backdrop-blur-xl border border-cyan-400/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-400 font-mono">Scan Latency</div>
+                  <div className="text-xs font-bold text-cyan-300">Instant &lt;0.4s</div>
+                </div>
+              </div>
+
+              <div className="hidden sm:flex absolute -bottom-4 -left-6 bg-black/90 backdrop-blur-xl border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-400 font-mono">Privacy Shield</div>
+                  <div className="text-xs font-bold text-emerald-400">Number 100% Hidden</div>
+                </div>
+              </div>
+
             </FadeIn>
           </div>
 
@@ -201,7 +271,7 @@ export default function Home() {
           ========================================================================= */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden">
         
-        {/* Section Header */}
+        {/* Section Header with Vehicle Switcher */}
         <FadeIn className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-cyan-400 rounded-full px-4 py-1 text-xs font-bold tracking-widest uppercase mb-4">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -211,27 +281,53 @@ export default function Home() {
             Built for World-Class Machines.
           </h2>
           <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-            From bespoke black supercars with carbon diffusers to daily drivers in packed city lots — Vyra Connect turns your vehicle into a privately connected fortress.
+            From bespoke black supercars with carbon diffusers to superbikes cutting through night fog — Vyra Connect turns your vehicle into a privately connected fortress.
           </p>
+
+          {/* Vehicle Switcher Pills */}
+          <div className="flex justify-center gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setSelectedVehicle("car")}
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-2 border ${
+                selectedVehicle === "car"
+                  ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-105"
+                  : "bg-black/60 text-gray-300 border-white/10 hover:border-white/30"
+              }`}
+            >
+              <Car className="w-4 h-4" /> Stealth Hypercar
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedVehicle("bike")}
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-2 border ${
+                selectedVehicle === "bike"
+                  ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-105"
+                  : "bg-black/60 text-gray-300 border-white/10 hover:border-white/30"
+              }`}
+            >
+              <Zap className="w-4 h-4" /> Stealth Superbike
+            </button>
+          </div>
         </FadeIn>
 
-        {/* The Showcase Layout: Second Luxury Black Car on Left, Live Interactive Telemetry on Right */}
+        {/* The Showcase Layout: High-Standard Vehicle Showcase on Left, Live Interactive Telemetry on Right */}
         <div className="grid lg:grid-cols-12 gap-10 items-center">
           
-          {/* Left Side: Second Luxury Black Car Showcase (7 cols) */}
+          {/* Left Side: Vehicle Showcase (7 cols) */}
           <div className="lg:col-span-7">
             <FadeIn direction="right">
               <div className="relative rounded-[2.5rem] bg-gradient-to-b from-white/10 to-black/90 p-4 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_60px_rgba(6,182,212,0.2)] overflow-hidden group">
                 <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
                   <Image 
-                    src="/images/experience-luxury-car.webp" 
-                    alt="Aggressive Stealth Black Supercar with Cyan Tail Light" 
+                    src={selectedVehicle === "car" ? "/images/experience-luxury-car.webp" : "/images/stealth-superbike.webp"} 
+                    alt={selectedVehicle === "car" ? "Stealth Black Hypercar" : "Stealth Black Superbike"} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30" />
 
-                  {/* Hotspot 1: Windshield / Rear Glass Tag */}
+                  {/* Hotspot 1: Windshield / Fuel Tank Tag */}
                   <div className="absolute top-[32%] right-[38%] group/pin cursor-pointer">
                     <div className="relative flex items-center justify-center">
                       <span className="w-10 h-10 rounded-full bg-cyan-400/30 animate-ping absolute" />
@@ -254,7 +350,9 @@ export default function Home() {
                   {/* Caption on image */}
                   <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-400 font-bold">Smart Telematics Hub</div>
+                      <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-400 font-bold">
+                        {selectedVehicle === "car" ? "Hypercar Telematics Suite" : "Superbike Security Hub"}
+                      </div>
                       <div className="text-sm font-bold text-white">Instant Parking Communication & Emergency Beacon</div>
                     </div>
                     <Link 
@@ -395,6 +493,118 @@ export default function Home() {
           </div>
 
         </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2.5: OFFICIAL PRODUCT KIT SHOWCASE (₹399 CONNECT KIT)
+          ========================================================================= */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden">
+        {/* Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-blue-600/10 via-cyan-500/15 to-blue-600/10 blur-[130px] rounded-full pointer-events-none -z-10" />
+
+        <FadeIn className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 rounded-full px-4 py-1.5 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            Complete Hardware Kit • ₹399
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white font-heading tracking-tight mb-4">
+            One Vehicle. One Vyra.
+          </h2>
+          <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+            Everything you need in a single premium box. Mount the smart tag to your vehicle, keep the portable tag on your keys, and carry your ID card everywhere.
+          </p>
+        </FadeIn>
+
+        {/* Big Kit Display Box */}
+        <FadeIn>
+          <div className="relative rounded-[3rem] bg-gradient-to-b from-white/10 via-black/80 to-black border border-cyan-500/30 p-6 sm:p-10 backdrop-blur-2xl shadow-[0_20px_80px_rgba(6,182,212,0.2)] mb-12 overflow-hidden group">
+            <div className="grid lg:grid-cols-12 gap-8 items-center">
+              
+              {/* Left: Kit Box Image */}
+              <div className="lg:col-span-7 relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <Image 
+                  src="/images/vyra-kit-showcase.jpg" 
+                  alt="Vyra Connect Kit Official Packaging and Hardware" 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                  priority 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-cyan-300 bg-black/80 px-3 py-1.5 rounded-xl border border-white/10">
+                    OFFICIAL HARDWARE SUITE
+                  </span>
+                  <span className="text-sm font-extrabold text-white bg-cyan-500/30 border border-cyan-400/50 px-4 py-1.5 rounded-xl">
+                    ₹399 ALL-INCLUSIVE
+                  </span>
+                </div>
+              </div>
+
+              {/* Right: What You Get List */}
+              <div className="lg:col-span-5 space-y-6">
+                <div>
+                  <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">Unbox Complete Safety</span>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-heading mt-1">
+                    What's Inside The Box
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-400/30 font-bold">
+                      1
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Bike & Car QR Smart Sticker</h4>
+                      <p className="text-xs text-gray-400 mt-0.5">30mm × 45mm • Waterproof • UV Resistant • 10-Yr Matte Finish</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-400/30 font-bold">
+                      2
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Portable Keyring Tag</h4>
+                      <p className="text-xs text-gray-400 mt-0.5">30mm × 45mm • 0.8mm Durable PVC/ABS with Keyring Hole</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-400/30 font-bold">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Official Vehicle ID Card</h4>
+                      <p className="text-xs text-gray-400 mt-0.5">85.6mm × 54mm • Wallet-friendly PVC Card with Emergency QR</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/30 font-bold">
+                      4
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Quick Setup & Emergency Guide</h4>
+                      <p className="text-xs text-gray-400 mt-0.5">Instant 60-second activation instructions inside box</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Link
+                    href="/buy"
+                    className="w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold py-4 px-6 rounded-2xl text-center shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 text-base border border-cyan-400/30"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Get Your Complete Kit Now (₹399)
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </FadeIn>
       </section>
 
       {/* =========================================================================

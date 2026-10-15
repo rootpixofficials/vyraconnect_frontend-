@@ -7,7 +7,7 @@ import {
   ShieldCheck, CheckCircle2, Truck, Sparkles, QrCode, 
   PhoneOff, Lock, RefreshCw, Star, MessageSquare, 
   ShoppingCart, ArrowRight, Car, Award, ChevronDown, Check,
-  ExternalLink, Zap
+  ExternalLink, Zap, Box, Tag, CreditCard
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 
@@ -97,11 +97,39 @@ const FAQS = [
   }
 ];
 
+const SHOWCASE_VIEWS = {
+  kit: {
+    id: "kit",
+    label: "Official Kit",
+    src: "/images/vyra-kit-showcase.jpg",
+    alt: "Vyra Connect Official Kit Box with QR Sticker, Tag and ID Card",
+    badge: "Official ₹399 Suite",
+    desc: "Includes Bike QR Sticker, Keyring Tag & Vehicle ID Card"
+  },
+  car: {
+    id: "car",
+    label: "Hypercar",
+    src: "/images/experience-luxury-car.webp",
+    alt: "Stealth luxury hypercar with Vyra Connect windshield tag",
+    badge: "Automotive Dark Edition",
+    desc: "Windshield mount with 0.38s instant privacy QR detection"
+  },
+  bike: {
+    id: "bike",
+    label: "Superbike",
+    src: "/images/stealth-superbike.webp",
+    alt: "Stealth superbike with Vyra Connect fuel tank QR sticker",
+    badge: "Superbike Edition",
+    desc: "High-grade waterproof tank & fairing placement"
+  }
+} as const;
+
 export default function BuyPage() {
   const [selectedPack, setSelectedPack] = useState(PACKS[1]); // Duo pack by default
   const [selectedFinish, setSelectedFinish] = useState(FINISHES[0]);
   const [vehicleType, setVehicleType] = useState("car");
   const [plateNumber, setPlateNumber] = useState("KL 11 AZ 7777");
+  const [showcaseView, setShowcaseView] = useState<"kit" | "car" | "bike">("kit");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   // Form state
@@ -186,30 +214,93 @@ Please confirm my order and share delivery details!`;
             <div className="relative rounded-[2.5rem] bg-gradient-to-b from-white/10 to-black/60 border border-white/10 p-6 md:p-8 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[90px] rounded-full pointer-events-none" />
               
-              <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-6 border border-white/10 shadow-2xl group">
+              {/* Showcase Switcher */}
+              <div className="flex items-center justify-between mb-4 bg-white/5 p-1 rounded-2xl border border-white/10">
+                {(["kit", "car", "bike"] as const).map((view) => (
+                  <button
+                    key={view}
+                    type="button"
+                    onClick={() => setShowcaseView(view)}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                      showcaseView === view
+                        ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {SHOWCASE_VIEWS[view].label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic Image Showcase */}
+              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-4 border border-white/10 shadow-2xl group bg-black/60">
                 <Image 
-                  src="/images/smart-tag-car.webp" 
-                  alt="Vyra Smart Tag on Luxury Car" 
+                  key={showcaseView}
+                  src={SHOWCASE_VIEWS[showcaseView].src} 
+                  alt={SHOWCASE_VIEWS[showcaseView].alt} 
                   fill 
                   className="object-cover group-hover:scale-105 transition-transform duration-700" 
                   priority 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
                 
-                {/* Overlay live tag plate indicator */}
-                <div className="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-md border border-white/15 p-3.5 rounded-xl flex items-center justify-between">
+                {/* Top Badge */}
+                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md border border-cyan-500/30 text-cyan-400 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                  <Sparkles className="w-3 h-3 text-cyan-400" />
+                  {SHOWCASE_VIEWS[showcaseView].badge}
+                </div>
+
+                {/* Overlay live indicator / kit highlight */}
+                <div className="absolute bottom-3 left-3 right-3 bg-black/80 backdrop-blur-md border border-white/15 p-3 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
-                      <QrCode className="w-5 h-5 text-cyan-400" />
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
+                      <QrCode className="w-4 h-4 text-cyan-400" />
                     </div>
                     <div>
-                      <div className="text-[10px] tracking-wider text-gray-400 uppercase font-mono">Linked Vehicle</div>
-                      <div className="text-sm font-bold text-white tracking-widest font-mono">{plateNumber || "YOUR CAR"}</div>
+                      <div className="text-[10px] tracking-wider text-gray-400 uppercase font-mono">
+                        {showcaseView === "kit" ? "Included in Package" : "Linked Vehicle"}
+                      </div>
+                      <div className="text-xs font-bold text-white tracking-wider font-mono">
+                        {showcaseView === "kit" ? "Complete ₹399 Hardware Kit" : (plateNumber || "YOUR CAR")}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] px-2.5 py-1 rounded-full font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    Ready
+                  <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Official
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Hardware Items Included in the Kit */}
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-3.5 mb-4">
+                <div className="text-[11px] font-bold text-gray-300 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-cyan-400">
+                    <Box className="w-3.5 h-3.5" /> What You Receive in the Box:
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono">3 Items Included</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-2 text-center group hover:border-cyan-500/40 transition-colors">
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-1.5 bg-black/50 border border-white/5">
+                      <Image src="/images/product-bike-sticker.jpg" alt="Bike QR Sticker" fill className="object-cover group-hover:scale-105 transition-transform" />
+                    </div>
+                    <div className="text-[11px] font-bold text-white leading-tight">Bike Sticker</div>
+                    <div className="text-[9px] text-gray-400 font-mono">30×45mm</div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-2 text-center group hover:border-cyan-500/40 transition-colors">
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-1.5 bg-black/50 border border-white/5">
+                      <Image src="/images/product-portable-tag.jpg" alt="Keyring Scanner Tag" fill className="object-cover group-hover:scale-105 transition-transform" />
+                    </div>
+                    <div className="text-[11px] font-bold text-white leading-tight">Keyring Tag</div>
+                    <div className="text-[9px] text-gray-400 font-mono">Portable Tag</div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-2 text-center group hover:border-cyan-500/40 transition-colors">
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-1.5 bg-black/50 border border-white/5">
+                      <Image src="/images/product-vehicle-id-card.jpg" alt="Vehicle ID Card" fill className="object-cover group-hover:scale-105 transition-transform" />
+                    </div>
+                    <div className="text-[11px] font-bold text-white leading-tight">Vehicle ID Card</div>
+                    <div className="text-[9px] text-gray-400 font-mono">85.6×54mm</div>
                   </div>
                 </div>
               </div>

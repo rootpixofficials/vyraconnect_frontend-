@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Car, CheckCircle2, Clock, Cpu, FileText, MapPin, MessageSquare, QrCode, Share2, ShoppingCart, Smartphone, Users, ArrowRight } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
+import VehicleBanner from "@/components/VehicleBanner";
 
 export default function Features() {
   const features = [
@@ -37,6 +38,16 @@ export default function Features() {
             </div>
           </FadeIn>
         ))}
+      </div>
+
+      {/* Official Brand Showcase Banner: ONE VEHICLE. ONE VYRA. */}
+      <div className="mb-20">
+        <VehicleBanner 
+          headlinePrefix="ONE VEHICLE." 
+          headlineHighlight="ONE VYRA." 
+          tagline="One Vehicle. One Vyra."
+          defaultVehicle="bike"
+        />
       </div>
 
       <FadeIn delay={0.4} className="text-center">

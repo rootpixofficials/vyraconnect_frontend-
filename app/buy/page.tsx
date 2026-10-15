@@ -109,7 +109,7 @@ const SHOWCASE_VIEWS = {
   car: {
     id: "car",
     label: "Hypercar",
-    src: "/images/experience-luxury-car.webp",
+    src: "/images/vehicle-banner-car.webp",
     alt: "Stealth luxury hypercar with Vyra Connect windshield tag",
     badge: "Automotive Dark Edition",
     desc: "Windshield mount with 0.38s instant privacy QR detection"
@@ -117,7 +117,7 @@ const SHOWCASE_VIEWS = {
   bike: {
     id: "bike",
     label: "Superbike",
-    src: "/images/stealth-superbike.webp",
+    src: "/images/vehicle-banner-bike.webp",
     alt: "Stealth superbike with Vyra Connect fuel tank QR sticker",
     badge: "Superbike Edition",
     desc: "High-grade waterproof tank & fairing placement"

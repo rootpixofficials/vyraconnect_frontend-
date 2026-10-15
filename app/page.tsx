@@ -7,6 +7,7 @@ import Preloader from "@/components/Preloader";
 import FadeIn from "@/components/FadeIn";
 import ContactForm from "@/components/ContactForm";
 import DummyQR from "@/components/DummyQR";
+import VehicleBanner from "@/components/VehicleBanner";
 import { 
   Bell, MessageSquare, PhoneOff, QrCode, CheckCircle2, 
   Star, ShieldCheck, Smartphone, ArrowRight, Car, MapPin, Mail,
@@ -266,14 +267,14 @@ export default function Home() {
       </section>
 
       {/* =========================================================================
-          SECTION 2: MATCHING POSITION ("THE VYRA EXPERIENCE" - SECOND LUXURY BLACK CAR)
-          Strategically designed to captivate visitors and make them struck with wonder!
+          SECTION 2: OFFICIAL VEHICLE SHOWCASE BANNER ("YOUR VEHICLE. YOUR NETWORK.")
+          Designed directly matching official Vyra Connect brand specifications
           ========================================================================= */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden">
         
-        {/* Section Header with Vehicle Switcher */}
-        <FadeIn className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-cyan-400 rounded-full px-4 py-1 text-xs font-bold tracking-widest uppercase mb-4">
+        {/* Section Header */}
+        <FadeIn className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-cyan-400 rounded-full px-4 py-1 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             Breathtaking Engineering
           </div>
@@ -281,218 +282,140 @@ export default function Home() {
             Built for World-Class Machines.
           </h2>
           <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-            From bespoke black supercars with carbon diffusers to superbikes cutting through night fog — Vyra Connect turns your vehicle into a privately connected fortress.
+            From bespoke black hypercars to superbikes cutting through night fog — Vyra Connect turns your vehicle into a privately connected fortress.
           </p>
-
-          {/* Vehicle Switcher Pills */}
-          <div className="flex justify-center gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setSelectedVehicle("car")}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-2 border ${
-                selectedVehicle === "car"
-                  ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-105"
-                  : "bg-black/60 text-gray-300 border-white/10 hover:border-white/30"
-              }`}
-            >
-              <Car className="w-4 h-4" /> Stealth Hypercar
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedVehicle("bike")}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-2 border ${
-                selectedVehicle === "bike"
-                  ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-105"
-                  : "bg-black/60 text-gray-300 border-white/10 hover:border-white/30"
-              }`}
-            >
-              <Zap className="w-4 h-4" /> Stealth Superbike
-            </button>
-          </div>
         </FadeIn>
 
-        {/* The Showcase Layout: High-Standard Vehicle Showcase on Left, Live Interactive Telemetry on Right */}
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          
-          {/* Left Side: Vehicle Showcase (7 cols) */}
-          <div className="lg:col-span-7">
-            <FadeIn direction="right">
-              <div className="relative rounded-[2.5rem] bg-gradient-to-b from-white/10 to-black/90 p-4 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_60px_rgba(6,182,212,0.2)] overflow-hidden group">
-                <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
-                  <Image 
-                    src={selectedVehicle === "car" ? "/images/experience-luxury-car.webp" : "/images/stealth-superbike.webp"} 
-                    alt={selectedVehicle === "car" ? "Stealth Black Hypercar" : "Stealth Black Superbike"} 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-1000"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30" />
+        {/* Master Showcase Vehicle Banner (Seamless car/bike with pipeline & pillars) */}
+        <VehicleBanner className="mb-12" />
 
-                  {/* Hotspot 1: Windshield / Fuel Tank Tag */}
-                  <div className="absolute top-[32%] right-[38%] group/pin cursor-pointer">
-                    <div className="relative flex items-center justify-center">
-                      <span className="w-10 h-10 rounded-full bg-cyan-400/30 animate-ping absolute" />
-                      <span className="w-6 h-6 rounded-full bg-cyan-400 text-black font-bold flex items-center justify-center text-xs shadow-[0_0_15px_#06b6d4]">
-                        1
-                      </span>
+        {/* Interactive Live Demo: Experience the Alert in Real-Time */}
+        <FadeIn delay={0.2} className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-b from-white/10 via-black/80 to-black border border-cyan-500/30 rounded-[2.5rem] p-6 sm:p-10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(6,182,212,0.15)]">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest font-mono">Live Simulation</span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-heading mt-0.5">
+                  Experience How Vyra Alerts You
+                </h3>
+              </div>
+              <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full text-emerald-400 text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                Live Cloud Relay Ready
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="grid grid-cols-3 gap-2 bg-black/60 p-1.5 rounded-2xl border border-white/10 mb-6">
+              <button
+                type="button"
+                onClick={() => setActiveTab("alert")}
+                className={`py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+                  activeTab === "alert" 
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25" 
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                1. Parking Ping
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("chat")}
+                className={`py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+                  activeTab === "chat" 
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25" 
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                2. Masked Chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("lost")}
+                className={`py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+                  activeTab === "lost" 
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25" 
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                3. Lost Mode
+              </button>
+            </div>
+
+            {/* Dynamic Tab Content Preview */}
+            <div className="bg-black/70 border border-white/10 rounded-2xl p-5 sm:p-6 mb-6 min-h-[170px] flex flex-col justify-between shadow-inner">
+              {activeTab === "alert" && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-400/30">
+                      <Bell className="w-5 h-5" />
                     </div>
-                  </div>
-
-                  {/* Hotspot 2: Cyber License Plate Lookup */}
-                  <div className="absolute bottom-[30%] right-[32%] group/pin cursor-pointer">
-                    <div className="relative flex items-center justify-center">
-                      <span className="w-10 h-10 rounded-full bg-blue-500/30 animate-ping absolute" />
-                      <span className="w-6 h-6 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center text-xs shadow-[0_0_15px_#3b82f6]">
-                        2
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Caption on image */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-400 font-bold">
-                        {selectedVehicle === "car" ? "Hypercar Telematics Suite" : "Superbike Security Hub"}
-                      </div>
-                      <div className="text-sm font-bold text-white">Instant Parking Communication & Emergency Beacon</div>
+                      <div className="text-sm font-bold text-white">Incoming Instant Parking Alert</div>
+                      <div className="text-xs text-gray-400">Scanner selected: "Car blocking my driveway"</div>
                     </div>
-                    <Link 
-                      href="/buy" 
-                      className="bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shrink-0"
-                    >
-                      Order Smart Tag <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                    "Your vehicle (KL 11 AZ 7777) was scanned at Lulu Mall Parking B2. Scanner requested you to move forward 2 meters."
+                  </p>
+                </div>
+              )}
+
+              {activeTab === "chat" && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-400/30">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">Masked 2-Way Chat Relay</div>
+                      <div className="text-xs text-gray-400">Owner Mobile: +91 ••••• ••••55 (100% Encrypted & Hidden)</div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-xs sm:text-sm pt-2">
+                    <div className="bg-blue-600/30 border border-blue-400/20 text-blue-200 p-3 rounded-xl max-w-[85%]">
+                      Scanner: "Hey, lights are left on in your car!"
+                    </div>
+                    <div className="bg-white/10 text-white p-3 rounded-xl max-w-[85%] ml-auto text-right border border-white/10">
+                      You: "Thank you so much! Heading over right now."
+                    </div>
                   </div>
                 </div>
+              )}
+
+              {activeTab === "lost" && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-400/30">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">Lost Mode Community Ping</div>
+                      <div className="text-xs text-rose-300 font-semibold">Active Emergency Beacon Triggered</div>
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                    "Vehicle reported missing. Scanner location pinned at Calicut Beach Road. Tipster provided photos to recovery team."
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-3 mt-2 flex items-center justify-between text-xs text-gray-400 border-t border-white/5">
+                <span>Relay Speed: <strong className="text-cyan-400">0.38s</strong></span>
+                <span className="text-cyan-400 font-medium">End-to-End Encrypted</span>
               </div>
-            </FadeIn>
+            </div>
+
+            {/* Direct Action Link to /buy */}
+            <Link
+              href="/buy"
+              className="w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all flex items-center justify-center gap-2 text-sm border border-cyan-400/30"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Equip Your Vehicle Today (From ₹399)
+            </Link>
           </div>
-
-          {/* Right Side: Interactive Simulation & Feature Switcher (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <FadeIn direction="left" delay={0.1}>
-              <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 md:p-8 backdrop-blur-xl shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest font-mono">Live Demo</span>
-                    <h3 className="text-2xl font-bold text-white font-heading">Experience the Alert</h3>
-                  </div>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                </div>
-
-                {/* Tabs */}
-                <div className="grid grid-cols-3 gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("alert")}
-                    className={`py-2 px-2 text-xs font-bold rounded-xl transition ${
-                      activeTab === "alert" 
-                        ? "bg-cyan-500 text-black shadow-md" 
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    1. Parking Ping
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("chat")}
-                    className={`py-2 px-2 text-xs font-bold rounded-xl transition ${
-                      activeTab === "chat" 
-                        ? "bg-cyan-500 text-black shadow-md" 
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    2. Masked Chat
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("lost")}
-                    className={`py-2 px-2 text-xs font-bold rounded-xl transition ${
-                      activeTab === "lost" 
-                        ? "bg-cyan-500 text-black shadow-md" 
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    3. Lost Mode
-                  </button>
-                </div>
-
-                {/* Dynamic Tab Content Preview */}
-                <div className="bg-black/60 border border-white/10 rounded-2xl p-5 mb-6 min-h-[170px] flex flex-col justify-between">
-                  {activeTab === "alert" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                          <Bell className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-white">Incoming Parking Alert</div>
-                          <div className="text-[11px] text-gray-400">Scanner selected: "Car blocking my driveway"</div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
-                        "Your vehicle (KL 11 AZ 7777) was scanned at Lulu Mall Parking B2. Scanner requested you to move forward 2 meters."
-                      </p>
-                    </div>
-                  )}
-
-                  {activeTab === "chat" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                          <MessageSquare className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-white">Masked 2-Way Chat Relay</div>
-                          <div className="text-[11px] text-gray-400">Owner Number: +91 ••••• ••••55 (Hidden)</div>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-xs">
-                        <div className="bg-blue-600/30 text-blue-200 p-2.5 rounded-xl max-w-[85%]">
-                          Scanner: "Hey, lights are left on in your car!"
-                        </div>
-                        <div className="bg-white/10 text-white p-2.5 rounded-xl max-w-[85%] ml-auto text-right">
-                          You: "Thank you so much! Heading over right now."
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "lost" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-                          <MapPin className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-white">Lost Mode Community Ping</div>
-                          <div className="text-[11px] text-rose-300 font-semibold">Active Beacon Triggered</div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
-                        "Vehicle reported missing. Scanner location pinned at Calicut Beach Road. Tipster provided photos to recovery team."
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="pt-2 flex items-center justify-between text-[11px] text-gray-400 border-t border-white/5">
-                    <span>Latency: <strong>380ms</strong></span>
-                    <span className="text-cyan-400 font-medium">End-to-End Encrypted</span>
-                  </div>
-                </div>
-
-                {/* Direct Action Link to /buy */}
-                <Link
-                  href="/buy"
-                  className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-white/10"
-                >
-                  <ShoppingCart className="w-4 h-4 text-cyan-400" />
-                  Equip Your Vehicle Today (From ₹399)
-                </Link>
-              </div>
-            </FadeIn>
-          </div>
-
-        </div>
+        </FadeIn>
       </section>
 
       {/* =========================================================================

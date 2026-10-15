@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MessageSquare, ShieldCheck, ShoppingCart, QrCode } from "lucide-react";
 import DummyQR from "@/components/DummyQR";
 import FadeIn from "@/components/FadeIn";
+import VehicleBanner from "@/components/VehicleBanner";
 
 export default function HowItWorks() {
   return (
@@ -38,6 +39,16 @@ export default function HowItWorks() {
           <h3 className="text-2xl font-bold text-white mb-4 font-heading">3. Protect</h3>
           <p className="text-gray-400 leading-relaxed">Manage documents, activate Lost Mode beacon, and stay safe with our zero-subscription platform.</p>
         </FadeIn>
+      </div>
+
+      {/* Official Brand Vehicle Pipeline Banner */}
+      <div className="mb-20">
+        <VehicleBanner
+          headlinePrefix="YOUR VEHICLE."
+          headlineHighlight="YOUR NETWORK."
+          tagline="Your Vehicle. Your Network."
+          defaultVehicle="car"
+        />
       </div>
 
       {/* CTA Box */}

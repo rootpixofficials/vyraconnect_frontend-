@@ -26,32 +26,36 @@ export async function sendEmail({
 }: SendMailParams): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const plainText = text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
-  // 1. If SMTP credentials are configured in environment variables, use SMTP
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // 1. If SMTP credentials or Gmail App Password are configured, use authenticated SMTP
+  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || NOTIFICATION_RECIPIENT;
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+
+  if (smtpPass) {
     try {
+      const isCustomHost = Boolean(process.env.SMTP_HOST);
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: process.env.SMTP_SECURE === "true",
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: Number(process.env.SMTP_PORT || 465),
+        secure: process.env.SMTP_SECURE !== "false", // SSL port 465 for Gmail
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
+          user: smtpUser,
+          pass: smtpPass.replace(/\s+/g, "") // trim any spaces if user pastes with spaces
         }
       });
 
       const info = await transporter.sendMail({
-        from: `Vyra Connect <${SENDER_EMAIL}>`,
+        from: `Vyra Connect <${smtpUser}>`,
         to,
-        replyTo: replyTo || SENDER_EMAIL,
+        replyTo: replyTo || smtpUser,
         subject,
         text: plainText,
         html
       });
 
-      console.log("[EMAIL] Sent via SMTP successfully:", info.messageId);
+      console.log("[EMAIL] Sent via authenticated SMTP successfully:", info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (smtpErr: any) {
-      console.warn("[EMAIL] SMTP delivery failed, falling back to local sendmail:", smtpErr.message);
+      console.warn("[EMAIL] SMTP delivery failed:", smtpErr.message);
     }
   }
 

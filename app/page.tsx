@@ -33,11 +33,11 @@ export default function Home() {
       {/* =========================================================================
           SECTION 1: HERO SECTION (FIRST SCREEN - LUXURY BLACK CAR SHOWCASE)
           ========================================================================= */}
-      <section className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
+      <section className="pt-2 sm:pt-4 md:pt-6 pb-16 px-4 sm:px-6 lg:px-12 xl:px-16 max-w-[1520px] mx-auto relative">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
           {/* Left Column: Heading, Value Props & Actions (7 cols) */}
-          <div className="lg:col-span-7 xl:col-span-7 space-y-6">
+          <div className="lg:col-span-7 xl:col-span-6 space-y-6">
             <FadeIn direction="right">
               {/* Futuristic Cyber Badge */}
               <div className="inline-flex items-center gap-2 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 to-blue-600/10 text-cyan-300 rounded-full px-4 py-1.5 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
@@ -46,7 +46,7 @@ export default function Home() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight font-heading leading-[1.08] mb-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] font-extrabold text-white tracking-tight font-heading leading-[1.08] mb-4">
                 Park Freely. <br />
                 <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(6,182,212,0.4)]">
                   Stay Untouchable.
@@ -54,7 +54,7 @@ export default function Home() {
               </h1>
 
               {/* Sub-headline */}
-              <p className="text-lg md:text-xl text-gray-300 font-normal leading-relaxed max-w-xl">
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 font-normal leading-relaxed max-w-xl">
                 When someone scans your vehicle, you receive an instant encrypted alert. They reach you seamlessly — but <span className="text-cyan-300 font-semibold">never see your phone number</span>.
               </p>
 
@@ -103,9 +103,9 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          {/* Right Column: iPhone 18 Pro Scanning Mockup (5 cols) */}
-          <div className="lg:col-span-5 xl:col-span-5 relative mt-12 lg:mt-0 flex justify-center lg:justify-end items-center">
-            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end lg:translate-x-10 xl:translate-x-16">
+          {/* Right Column: iPhone 18 Pro Scanning Mockup (Shifted Rightward) */}
+          <div className="lg:col-span-5 xl:col-span-6 relative mt-10 lg:mt-0 flex justify-center lg:justify-end items-center">
+            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end w-full max-w-[340px] ml-auto lg:translate-x-12 xl:translate-x-20 2xl:translate-x-28">
               
               {/* Ambient Glow behind Phone */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />

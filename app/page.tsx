@@ -34,10 +34,10 @@ export default function Home() {
           SECTION 1: HERO SECTION (FIRST SCREEN - LUXURY BLACK CAR SHOWCASE)
           ========================================================================= */}
       <section className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Heading, Value Props & Actions (7 cols) */}
-          <div className="lg:col-span-6 space-y-6">
+          <div className="lg:col-span-7 xl:col-span-7 space-y-6">
             <FadeIn direction="right">
               {/* Futuristic Cyber Badge */}
               <div className="inline-flex items-center gap-2 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 to-blue-600/10 text-cyan-300 rounded-full px-4 py-1.5 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
@@ -46,7 +46,7 @@ export default function Home() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight font-heading leading-[1.08] mb-4">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight font-heading leading-[1.08] mb-4">
                 Park Freely. <br />
                 <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(6,182,212,0.4)]">
                   Stay Untouchable.
@@ -103,9 +103,9 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          {/* Right Column: iPhone 18 Pro Scanning Mockup (5-6 cols) */}
-          <div className="lg:col-span-6 relative mt-12 lg:mt-0 flex justify-center lg:justify-end items-center lg:pr-4 xl:pr-8">
-            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end lg:translate-x-4 xl:translate-x-8">
+          {/* Right Column: iPhone 18 Pro Scanning Mockup (5 cols) */}
+          <div className="lg:col-span-5 xl:col-span-5 relative mt-12 lg:mt-0 flex justify-center lg:justify-end items-center">
+            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end lg:translate-x-10 xl:translate-x-16">
               
               {/* Ambient Glow behind Phone */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />
@@ -369,7 +369,7 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="text-sm font-bold text-white">Masked 2-Way Chat Relay</div>
-                      <div className="text-xs text-gray-400">Owner Mobile: +91 ••••• ••••55 (100% Encrypted & Hidden)</div>
+                      <div className="text-xs text-gray-400">Owner Mobile: +91 ••••• ••••90 (100% Encrypted & Hidden)</div>
                     </div>
                   </div>
                   <div className="space-y-2 text-xs sm:text-sm pt-2">
@@ -710,7 +710,7 @@ export default function Home() {
                     <Mail className="w-6 h-6 text-cyan-400 shrink-0" />
                     <div>
                       <div className="text-xs text-gray-400">Direct Support</div>
-                      <div className="text-white font-medium">support@vyraconnect.com</div>
+                      <div className="text-white font-medium">vyraconnect.in@gmail.com</div>
                     </div>
                   </div>
                 </div>

@@ -34,8 +34,8 @@ export default function RootLayout({
             </p>
             <div className="space-y-4 text-gray-400">
               <p>Calicut, Kerala, India</p>
-              <p>Phone: +91 7907965255</p>
-              <p>Email: support@vyraconnect.com</p>
+              <p>Phone: +91 97469 10890</p>
+              <p>Email: vyraconnect.in@gmail.com</p>
             </div>
           </div>
           

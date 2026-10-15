@@ -11,7 +11,7 @@ export default function Contact() {
     { q: "How do I contact an owner from the website?", a: "Use Scan QR: enter a plate or scan a QR. Active tags open notify; new tags open activation—all from the same scan." },
     { q: "What is Lost Mode?", a: "Lost Mode marks a vehicle as missing in the app. When someone notifies you, you can receive tips and location to help recover it faster." },
     { q: "How do orders / Buy Now work?", a: "Tap Buy Now to order official Vyra Tag QR stickers. After delivery, activate the tag on web or in the app and start using it." },
-    { q: "How do I get support?", a: "Message us on WhatsApp from the Contact section, reach support in the app, or email support@vyraconnect.com." },
+    { q: "How do I get support?", a: "Message us on WhatsApp from the Contact section, reach support in the app, or email vyraconnect.in@gmail.com." },
   ];
 
   return (
@@ -52,8 +52,8 @@ export default function Contact() {
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1">Phone</h3>
-                <p className="text-gray-400">+91 7907965255</p>
+                <h3 className="font-bold text-white mb-1">Phone & WhatsApp</h3>
+                <p className="text-gray-400">+91 97469 10890</p>
               </div>
             </div>
             <div className="flex items-center gap-5 bg-white/5 p-6 rounded-2xl border border-white/10">
@@ -62,7 +62,7 @@ export default function Contact() {
               </div>
               <div>
                 <h3 className="font-bold text-white mb-1">Email</h3>
-                <p className="text-gray-400">support@vyraconnect.com</p>
+                <p className="text-gray-400">vyraconnect.in@gmail.com</p>
               </div>
             </div>
           </div>

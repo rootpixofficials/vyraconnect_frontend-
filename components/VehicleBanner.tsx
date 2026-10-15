@@ -58,14 +58,14 @@ export default function VehicleBanner({
 
   return (
     <FadeIn>
-      <div className={`relative rounded-[2.5rem] sm:rounded-[3rem] bg-[#030712] border border-cyan-500/30 overflow-hidden shadow-[0_20px_80px_rgba(6,182,212,0.18)] ${className}`}>
+      <div className={`relative w-full overflow-hidden ${className}`}>
         
-        {/* Background Ambient Glows */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none -z-0" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none -z-0" />
+        {/* Ambient Glows */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none -z-0" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 blur-[140px] rounded-full pointer-events-none -z-0" />
 
-        {/* Right Half: Seamless Vehicle Image */}
-        <div className="absolute inset-0 lg:left-[25%] pointer-events-none">
+        {/* Right Half: Seamless Vehicle Image Sinking directly into Page Background */}
+        <div className="absolute inset-0 lg:left-[20%] pointer-events-none">
           <Image
             key={vehicle}
             src={current.src}
@@ -74,26 +74,26 @@ export default function VehicleBanner({
             priority
             className="object-cover object-center lg:object-right transition-opacity duration-700 select-none"
           />
-          {/* Gradients to seamlessly blend the vehicle into dark background on left, top and bottom */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#030712] via-[#030712]/90 lg:via-[#030712]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-[#030712]/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/60 via-transparent to-[#030712]" />
+          {/* Seamless fade gradients so image dissolves completely into dark page background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#030712] via-[#030712]/90 lg:via-[#030712]/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#030712] via-transparent to-transparent" />
         </div>
 
-        {/* Foreground Content Container */}
-        <div className="relative z-10 p-6 sm:p-10 lg:p-14 min-h-[580px] sm:min-h-[620px] flex flex-col justify-between">
+        {/* Foreground Content Container - Clean & Open, without bounding box */}
+        <div className="relative z-10 py-8 sm:py-12 min-h-[580px] sm:min-h-[620px] flex flex-col justify-between">
           
           {/* Top Row: Brand & Vehicle Switcher */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             {/* Brand Logo & Tagline */}
             <div className="flex items-center gap-3">
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center">
-                <div className="w-full h-full bg-[#030712] rounded-[10px] flex items-center justify-center">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center">
+                <div className="w-full h-full bg-[#030712] rounded-[10px] flex items-center justify-center p-1">
                   <Image 
-                    src="/images/vyra-logo-navbar.png" 
+                    src="/vyra-logo-navbar.png" 
                     alt="Vyra Connect Logo" 
-                    width={28} 
-                    height={28} 
+                    width={32} 
+                    height={32} 
                     className="object-contain" 
                   />
                 </div>

@@ -168,7 +168,7 @@ export default function BuyPage() {
 
 Please confirm my order and share delivery details!`;
 
-    return `https://wa.me/917907965255?text=${encodeURIComponent(msg)}`;
+    return `https://wa.me/919746910890?text=${encodeURIComponent(msg)}`;
   };
 
   const handlePlaceOrder = (e: React.FormEvent) => {

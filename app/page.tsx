@@ -12,73 +12,73 @@ import {
   Bell, MessageSquare, PhoneOff, QrCode, CheckCircle2, 
   Star, ShieldCheck, Smartphone, ArrowRight, Car, MapPin, Mail,
   Sparkles, Shield, Zap, Lock, EyeOff, Cpu, ShoppingCart, 
-  ChevronRight, Award, Check
+  ChevronRight, Award, Check, Radio
 } from "lucide-react";
 
 export default function Home() {
-  // State for interactive simulation in Section 2
+  // State for interactive simulation
   const [activeTab, setActiveTab] = useState<"alert" | "chat" | "lost">("alert");
-  const [selectedVehicle, setSelectedVehicle] = useState<"car" | "bike">("car");
-  const [simulatedAlertCount, setSimulatedAlertCount] = useState(1);
 
   return (
     <main className="relative overflow-hidden selection:bg-cyan-500 selection:text-black">
       <Preloader />
 
       {/* AMBIENT BACKGROUND GLOWS */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-cyan-600/15 via-blue-900/10 to-transparent blur-[140px] pointer-events-none -z-10" />
-      <div className="absolute top-[1200px] left-0 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] pointer-events-none -z-10" />
-      <div className="absolute top-[2200px] right-0 w-[600px] h-[600px] bg-cyan-600/10 blur-[150px] pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-cyan-600/15 via-blue-900/10 to-transparent blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute top-[1400px] left-0 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] pointer-events-none -z-10" />
+      <div className="absolute top-[2600px] right-0 w-[600px] h-[600px] bg-cyan-600/10 blur-[150px] pointer-events-none -z-10" />
 
       {/* =========================================================================
-          SECTION 1: HERO SECTION (FIRST SCREEN - LUXURY BLACK CAR SHOWCASE)
+          SECTION 1: HERO SECTION (FIRST SCREEN - LUXURY AUTOMOTIVE & SCANNER)
+          Reduced top spacing and phone shifted slightly to the right side
           ========================================================================= */}
-      <section className="pt-2 sm:pt-4 md:pt-6 pb-16 px-4 sm:px-6 lg:px-12 xl:px-16 max-w-[1520px] mx-auto relative">
+      <section className="pt-2 sm:pt-4 md:pt-5 pb-16 px-4 sm:px-6 lg:px-12 xl:px-16 max-w-[1520px] mx-auto relative">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
-          {/* Left Column: Heading, Value Props & Actions (7 cols) */}
+          {/* Left Column: Heading, Value Props & Actions (6 cols) */}
           <div className="lg:col-span-7 xl:col-span-6 space-y-6">
             <FadeIn direction="right">
-              {/* Futuristic Cyber Badge */}
-              <div className="inline-flex items-center gap-2 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 to-blue-600/10 text-cyan-300 rounded-full px-4 py-1.5 text-xs font-bold tracking-widest uppercase mb-4 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                Next-Gen Vehicle Identity & Privacy
+              
+              {/* Kicker Line Inspired by Luxury Automotive Design */}
+              <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase mb-3">
+                <span className="w-6 h-[2px] bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
+                THE FUTURE OF VEHICLE PRIVACY
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] font-extrabold text-white tracking-tight font-heading leading-[1.08] mb-4">
-                Park Freely. <br />
+              <h1 className="text-3xl sm:text-5xl lg:text-[2.75rem] xl:text-[3.35rem] font-black text-white tracking-tight font-heading leading-[1.08] mb-4">
+                PARK FREELY. <br />
                 <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(6,182,212,0.4)]">
-                  Stay Untouchable.
+                  STAY UNTOUCHABLE.
                 </span>
               </h1>
 
               {/* Sub-headline */}
-              <p className="text-base sm:text-lg md:text-xl text-gray-300 font-normal leading-relaxed max-w-xl">
-                When someone scans your vehicle, you receive an instant encrypted alert. They reach you seamlessly — but <span className="text-cyan-300 font-semibold">never see your phone number</span>.
+              <p className="text-base sm:text-lg text-gray-300 font-normal leading-relaxed max-w-xl">
+                When someone scans your vehicle tag, you receive an instant encrypted alert. They reach you effortlessly in seconds — but <span className="text-cyan-300 font-semibold">never see your phone number</span>.
               </p>
 
               {/* Interactive Feature Pills */}
-              <div className="flex flex-wrap gap-3 py-2">
-                <span className="flex items-center gap-2 bg-black/40 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
+              <div className="flex flex-wrap gap-2.5 py-1">
+                <span className="flex items-center gap-2 bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
                   <PhoneOff className="w-4 h-4 text-cyan-400 shrink-0" /> Number 100% Hidden
                 </span>
-                <span className="flex items-center gap-2 bg-black/40 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
+                <span className="flex items-center gap-2 bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
                   <Zap className="w-4 h-4 text-cyan-400 shrink-0" /> Instant Alert &lt;0.4s
                 </span>
-                <span className="flex items-center gap-2 bg-black/40 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
+                <span className="flex items-center gap-2 bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-gray-200 backdrop-blur-md shadow-sm">
                   <MessageSquare className="w-4 h-4 text-cyan-400 shrink-0" /> Masked Chat • Call • SMS
                 </span>
               </div>
 
               {/* Primary Buttons */}
-              <div className="flex flex-wrap gap-4 pt-4">
+              <div className="flex flex-wrap gap-4 pt-3">
                 <Link 
                   href="/buy" 
                   className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white px-8 py-3.5 rounded-full font-extrabold text-base hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 border border-cyan-400/40 shadow-lg"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Get Vyra Smart Tag
+                  Get Vyra Smart Tag (₹399)
                 </Link>
                 <Link 
                   href="/scan-qr" 
@@ -90,7 +90,7 @@ export default function Home() {
               </div>
 
               {/* Social Proof */}
-              <div className="flex items-center gap-3 pt-4 text-xs text-gray-400">
+              <div className="flex items-center gap-3 pt-3 text-xs text-gray-400">
                 <div className="flex text-amber-400">
                   <Star className="w-4 h-4 fill-current" />
                   <Star className="w-4 h-4 fill-current" />
@@ -98,14 +98,14 @@ export default function Home() {
                   <Star className="w-4 h-4 fill-current" />
                   <Star className="w-4 h-4 fill-current" />
                 </div>
-                <span>Trusted by <strong>1,200+</strong> premium car owners across India</span>
+                <span>Trusted by <strong>1,200+</strong> premium car and bike owners across India</span>
               </div>
             </FadeIn>
           </div>
 
-          {/* Right Column: iPhone 18 Pro Scanning Mockup (Shifted Rightward) */}
+          {/* Right Column: Mandatory iPhone 18 Pro Scanning Mockup (Shifted Rightward) */}
           <div className="lg:col-span-5 xl:col-span-6 relative mt-10 lg:mt-0 flex justify-center lg:justify-end items-center">
-            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end w-full max-w-[340px] ml-auto lg:translate-x-12 xl:translate-x-20 2xl:translate-x-28">
+            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end w-full max-w-[340px] ml-auto lg:translate-x-8 xl:translate-x-14">
               
               {/* Ambient Glow behind Phone */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />
@@ -242,35 +242,316 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS STRIP */}
-      <section className="border-y border-white/10 bg-black/40 backdrop-blur-xl py-8">
+      {/* =========================================================================
+          TELEMETRY / STATS STRIP (4 CARDS MATCHING LUXORA DESIGN)
+          ========================================================================= */}
+      <section className="border-y border-white/10 bg-black/40 backdrop-blur-xl py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-3xl md:text-4xl font-extrabold text-cyan-400 font-heading">0.4s</div>
-              <div className="text-xs sm:text-sm text-gray-400 mt-1">Instant Push Notification</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-extrabold text-cyan-400 font-heading">100%</div>
-              <div className="text-xs sm:text-sm text-gray-400 mt-1">Caller ID & Phone Masking</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-extrabold text-cyan-400 font-heading">10 Years</div>
-              <div className="text-xs sm:text-sm text-gray-400 mt-1">UV & Weatherproof Durability</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-extrabold text-cyan-400 font-heading">₹0</div>
-              <div className="text-xs sm:text-sm text-gray-400 mt-1">Monthly Subscription Fees</div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Stat Card 1 */}
+            <FadeIn delay={0.05}>
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 transition-all duration-300 group shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight mb-1">
+                  &lt; 0.38s
+                </div>
+                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                  ENCRYPTED RELAY SPEED
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Sub-second push notifications across all mobile networks and cellular carriers.
+                </p>
+              </div>
+            </FadeIn>
+
+            {/* Stat Card 2 */}
+            <FadeIn delay={0.1}>
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 transition-all duration-300 group shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                  <PhoneOff className="w-5 h-5" />
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight mb-1">
+                  100%
+                </div>
+                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                  PHONE NUMBER MASKED
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Scanners reach you directly without ever seeing, copying, or storing your real mobile number.
+                </p>
+              </div>
+            </FadeIn>
+
+            {/* Stat Card 3 */}
+            <FadeIn delay={0.15}>
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 transition-all duration-300 group shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight mb-1">
+                  10 Years
+                </div>
+                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                  UV & WEATHERPROOF SHIELD
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  High-grade matte automotive polymer withstands monsoons, harsh sun, and pressure washers.
+                </p>
+              </div>
+            </FadeIn>
+
+            {/* Stat Card 4 */}
+            <FadeIn delay={0.2}>
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 transition-all duration-300 group shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight mb-1">
+                  ₹0 / Mo
+                </div>
+                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                  LIFETIME ZERO SUBSCRIPTIONS
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  One-time hardware kit purchase. Unlimited cloud relays and instant alerts forever.
+                </p>
+              </div>
+            </FadeIn>
+
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 2: OFFICIAL VEHICLE SHOWCASE BANNER ("YOUR VEHICLE. YOUR NETWORK.")
-          Designed directly matching official Vyra Connect brand specifications
+          FEATURE ROW 1: "TECHNOLOGY THAT MOVES YOU FORWARD" (MATCHING LUXORA)
+          Left: Rear-three-quarter stealth luxury car | Right: Privacy-First Telematics
           ========================================================================= */}
-      <section className="py-20 relative overflow-hidden w-full">
+      <section className="py-24 px-4 sm:px-6 lg:px-12 xl:px-16 max-w-[1520px] mx-auto relative overflow-hidden">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          {/* Left Column: Rear-Three-Quarter Stealth Hypercar Image */}
+          <div className="lg:col-span-6 relative">
+            <FadeIn direction="right">
+              <div className="relative rounded-3xl overflow-hidden border border-cyan-500/30 shadow-[0_20px_70px_rgba(6,182,212,0.25)] group bg-[#020617]">
+                
+                {/* Image */}
+                <div className="relative aspect-[16/10] w-full">
+                  <Image 
+                    src="/images/luxora-car-rear-quarter.webp"
+                    alt="Vyra Connect Stealth Hypercar Rear Quarter Showcase"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    priority
+                  />
+                  {/* Subtle edge vignetting */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
+                </div>
+
+                {/* Floating Telematics Badge */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                  <div className="flex items-center gap-2 bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-500/40 text-xs font-mono text-cyan-300 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                    ENCRYPTED NODE: ACTIVE
+                  </div>
+                  <span className="text-[11px] font-mono font-bold text-gray-300 bg-black/75 px-3 py-1 rounded-full border border-white/10">
+                    4K PHOTOMETRIC SENSOR
+                  </span>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Right Column: Copy & Bullet Points */}
+          <div className="lg:col-span-6 space-y-6">
+            <FadeIn direction="left">
+              
+              {/* Kicker */}
+              <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                <span className="w-6 h-[2px] bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
+                PRIVACY-FIRST TELEMATICS
+              </div>
+
+              {/* Title */}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-heading tracking-tight leading-tight">
+                Technology that moves your privacy forward.
+              </h2>
+
+              {/* Description */}
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
+                Vyra Connect redefines how vehicles interact with the world. Without requiring OBD wiring, battery drainage, or intrusive tracking units, our smart tag architecture creates an impenetrable shield between your identity and the public.
+              </p>
+
+              {/* 3 Circular Glowing Icon Bullets */}
+              <div className="space-y-4 pt-2">
+                
+                {/* Bullet 1 */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center text-cyan-400 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <Radio className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white font-heading">Intelligent QR Routing AI</h3>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
+                      Automatically dispatches parking alerts via instant push notification, WhatsApp, or masked voice call depending on your priority settings.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bullet 2 */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/15 border border-blue-400/40 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white font-heading">End-to-End Masked 2-Way Relay</h3>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
+                      Reply directly to anyone scanning your vehicle through our encrypted proxy relay. Neither party ever sees the other&apos;s personal phone number.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bullet 3 */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/15 border border-indigo-400/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white font-heading">Zero Subscription Architecture</h3>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
+                      Powered by ultra-fast cloud edge routing. One-time hardware kit purchase provides lifetime access with zero monthly maintenance fees.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4">
+                <Link 
+                  href="/features"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 text-cyan-300 font-bold px-7 py-3.5 rounded-full border border-cyan-400/40 shadow-lg hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all"
+                >
+                  DISCOVER ALL FEATURES <ChevronRight className="w-4 h-4 text-cyan-400" />
+                </Link>
+              </div>
+
+            </FadeIn>
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          FEATURE ROW 2: "ZERO EXPOSURE. ENDLESS POSSIBILITIES." (MATCHING LUXORA)
+          Left: Uncompromised Security & Stats | Right: Rear Vehicle in Neon Portal
+          ========================================================================= */}
+      <section className="py-24 px-4 sm:px-6 lg:px-12 xl:px-16 max-w-[1520px] mx-auto relative overflow-hidden">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          {/* Left Column: Security Copy & High-Impact Metric Cards */}
+          <div className="lg:col-span-6 space-y-6">
+            <FadeIn direction="right">
+              
+              {/* Kicker */}
+              <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                <span className="w-6 h-[2px] bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
+                UNCOMPROMISED SECURITY
+              </div>
+
+              {/* Title */}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-heading tracking-tight leading-tight">
+                Zero Exposure. <br />
+                <span className="text-cyan-400">Endless Possibilities.</span>
+              </h2>
+
+              {/* Description */}
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
+                Whether you drive a bespoke hypercar, cruise on a superbike, or park your family SUV in busy metropolitan centers, Vyra Connect guarantees that your peace of mind is never compromised by prying eyes or parking disputes.
+              </p>
+
+              {/* Two High-Impact Highlight Metric Cards */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-950/30 to-black/80 border border-cyan-500/30 shadow-lg">
+                  <div className="text-3xl sm:text-4xl font-black text-cyan-400 font-heading">
+                    0%
+                  </div>
+                  <div className="text-xs font-mono font-bold text-white uppercase tracking-wider mt-1 mb-1">
+                    NUMBER EXPOSURE
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Personal contact is never displayed or accessible to anyone scanning.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-950/30 to-black/80 border border-blue-500/30 shadow-lg">
+                  <div className="text-3xl sm:text-4xl font-black text-blue-400 font-heading">
+                    100%
+                  </div>
+                  <div className="text-xs font-mono font-bold text-white uppercase tracking-wider mt-1 mb-1">
+                    ENCRYPTED RELAY
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    End-to-end encrypted routing from scanner to your pocket in &lt;0.4s.
+                  </p>
+                </div>
+
+              </div>
+
+              {/* Order CTA */}
+              <div className="pt-4">
+                <Link
+                  href="/buy"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-8 py-3.5 rounded-full shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 transition-all border border-cyan-400/40 text-base"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  ORDER VYRA TAG (₹399)
+                </Link>
+              </div>
+
+            </FadeIn>
+          </div>
+
+          {/* Right Column: Rear Centered Hypercar in Glowing Cyan Portal Frame */}
+          <div className="lg:col-span-6 relative">
+            <FadeIn direction="left">
+              <div className="relative rounded-3xl overflow-hidden border-2 border-cyan-400/70 shadow-[0_0_50px_rgba(6,182,212,0.45)] group bg-[#020617]">
+                
+                {/* Image */}
+                <div className="relative aspect-[16/10] w-full">
+                  <Image 
+                    src="/images/luxora-car-rear-portal.webp"
+                    alt="Vyra Connect Stealth Hypercar Framed in Cyan Neon Portal"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-50" />
+                </div>
+
+                {/* Floating Portal Badge */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                  <div className="flex items-center gap-2 bg-black/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-400 text-xs font-mono text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    PORTAL MATRIX: LOCKED
+                  </div>
+                  <span className="text-[11px] font-mono font-bold text-gray-300 bg-black/80 px-3 py-1 rounded-full border border-white/10">
+                    10-YEAR UV MATTE
+                  </span>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: MASTER VEHICLE SHOWCASE BANNER ("YOUR VEHICLE. YOUR NETWORK.")
+          ========================================================================= */}
+      <section className="py-16 relative overflow-hidden w-full">
         
         {/* Section Header */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
@@ -288,7 +569,7 @@ export default function Home() {
           </FadeIn>
         </div>
 
-        {/* Master Showcase Vehicle Banner (Full Width Edge-to-Edge Image & Normal Borders) */}
+        {/* Master Showcase Vehicle Banner */}
         <VehicleBanner className="w-full mb-16" />
 
         {/* Interactive Live Demo: Experience the Alert in Real-Time */}
@@ -355,11 +636,11 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="text-sm font-bold text-white">Incoming Instant Parking Alert</div>
-                      <div className="text-xs text-gray-400">Scanner selected: "Car blocking my driveway"</div>
+                      <div className="text-xs text-gray-400">Scanner selected: &quot;Car blocking my driveway&quot;</div>
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-300 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
-                    "Your vehicle (KL 11 AZ 7777) was scanned at Lulu Mall Parking B2. Scanner requested you to move forward 2 meters."
+                    &quot;Your vehicle (KL 11 AZ 7777) was scanned at Lulu Mall Parking B2. Scanner requested you to move forward 2 meters.&quot;
                   </p>
                 </div>
               )}
@@ -372,15 +653,15 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="text-sm font-bold text-white">Masked 2-Way Chat Relay</div>
-                      <div className="text-xs text-gray-400">Owner Mobile: +91 ••••• ••••90 (100% Encrypted & Hidden)</div>
+                      <div className="text-xs text-gray-400">Owner Mobile: +91 ••••• ••••90 (100% Encrypted &amp; Hidden)</div>
                     </div>
                   </div>
                   <div className="space-y-2 text-xs sm:text-sm pt-2">
                     <div className="bg-blue-600/30 border border-blue-400/20 text-blue-200 p-3 rounded-xl max-w-[85%]">
-                      Scanner: "Hey, lights are left on in your car!"
+                      Scanner: &quot;Hey, lights are left on in your car!&quot;
                     </div>
                     <div className="bg-white/10 text-white p-3 rounded-xl max-w-[85%] ml-auto text-right border border-white/10">
-                      You: "Thank you so much! Heading over right now."
+                      You: &quot;Thank you so much! Heading over right now.&quot;
                     </div>
                   </div>
                 </div>
@@ -398,7 +679,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-300 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
-                    "Vehicle reported missing. Scanner location pinned at Calicut Beach Road. Tipster provided photos to recovery team."
+                    &quot;Vehicle reported missing. Scanner location pinned at Calicut Beach Road. Tipster provided photos to recovery team.&quot;
                   </p>
                 </div>
               )}
@@ -472,7 +753,7 @@ export default function Home() {
                 <div>
                   <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">Unbox Complete Safety</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-heading mt-1">
-                    What's Inside The Box
+                    What&apos;s Inside The Box
                   </h3>
                 </div>
 
@@ -482,7 +763,7 @@ export default function Home() {
                       1
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white">Bike & Car QR Smart Sticker</h4>
+                      <h4 className="text-sm font-bold text-white">Bike &amp; Car QR Smart Sticker</h4>
                       <p className="text-xs text-gray-400 mt-0.5">30mm × 45mm • Waterproof • UV Resistant • 10-Yr Matte Finish</p>
                     </div>
                   </div>
@@ -512,7 +793,7 @@ export default function Home() {
                       4
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white">Quick Setup & Emergency Guide</h4>
+                      <h4 className="text-sm font-bold text-white">Quick Setup &amp; Emergency Guide</h4>
                       <p className="text-xs text-gray-400 mt-0.5">Instant 60-second activation instructions inside box</p>
                     </div>
                   </div>
@@ -591,7 +872,7 @@ export default function Home() {
             href="/features" 
             className="inline-flex items-center gap-2 bg-blue-600/20 text-cyan-300 px-8 py-3.5 rounded-full font-bold hover:bg-blue-600/30 transition border border-cyan-500/30"
           >
-            Explore All 12 Platform Features <ArrowRight className="w-4 h-4" />
+            Explore All Platform Features <ArrowRight className="w-4 h-4" />
           </Link>
         </FadeIn>
       </section>
@@ -611,7 +892,7 @@ export default function Home() {
               <div className="w-20 h-20 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
                 <QrCode className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold text-white font-heading mb-2">1. Stick & Activate</h3>
+              <h3 className="text-2xl font-bold text-white font-heading mb-2">1. Stick &amp; Activate</h3>
               <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">Peel the 3M sticker, mount to your windshield, and scan once to link your plate.</p>
             </FadeIn>
 
@@ -637,7 +918,7 @@ export default function Home() {
               href="/how-it-works" 
               className="inline-flex items-center gap-2 text-cyan-400 font-bold hover:text-cyan-300 transition text-base"
             >
-              Read Complete Setup & Activation Guide <ArrowRight className="w-4 h-4" />
+              Read Complete Setup &amp; Activation Guide <ArrowRight className="w-4 h-4" />
             </Link>
           </FadeIn>
         </div>
@@ -657,7 +938,7 @@ export default function Home() {
                 <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
               </div>
               <p className="text-gray-300 mb-8 italic leading-relaxed text-base">
-                "Installed Vyra on my BMW M340i. Last week someone blocked me in a narrow mall parking space. They scanned the tag and I got an instant ping and masked call without having to leave my number on paper. Superb product!"
+                &quot;Installed Vyra on my BMW M340i. Last week someone blocked me in a narrow mall parking space. They scanned the tag and I got an instant ping and masked call without having to leave my number on paper. Superb product!&quot;
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-cyan-600 rounded-full flex items-center justify-center font-bold text-white text-lg">V</div>
@@ -673,7 +954,7 @@ export default function Home() {
                 <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
               </div>
               <p className="text-gray-300 mb-8 italic leading-relaxed text-base">
-                "The build quality of the sticker is top tier! It looks like an OEM factory part on my car window. 60 seconds setup and no monthly subscription charges at all. Highly recommended for all car owners."
+                &quot;The build quality of the sticker is top tier! It looks like an OEM factory part on my car window. 60 seconds setup and no monthly subscription charges at all. Highly recommended for all car owners.&quot;
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center font-bold text-white text-lg">R</div>
@@ -720,7 +1001,7 @@ export default function Home() {
                 </div>
                 
                 <Link href="/contact" className="inline-flex items-center gap-2 text-cyan-400 font-bold hover:text-cyan-300 transition text-base">
-                  View Full Contact Info & FAQ <ArrowRight className="w-4 h-4" />
+                  View Full Contact Info &amp; FAQ <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
               

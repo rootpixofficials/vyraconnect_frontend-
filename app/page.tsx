@@ -8,6 +8,7 @@ import FadeIn from "@/components/FadeIn";
 import ContactForm from "@/components/ContactForm";
 import DummyQR from "@/components/DummyQR";
 import VehicleBanner from "@/components/VehicleBanner";
+import MaskedCallModal from "@/components/MaskedCallModal";
 import { 
   Bell, MessageSquare, PhoneOff, QrCode, CheckCircle2, 
   Star, ShieldCheck, Smartphone, ArrowRight, Car, MapPin, Mail,
@@ -18,6 +19,7 @@ import {
 export default function Home() {
   // State for interactive simulation
   const [activeTab, setActiveTab] = useState<"alert" | "chat" | "lost">("alert");
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
 
   return (
     <main className="relative overflow-hidden selection:bg-cyan-500 selection:text-black">
@@ -199,7 +201,11 @@ export default function Home() {
 
                     {/* Quick Masked Actions */}
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                      <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-md hover:opacity-90">
+                      <button 
+                        type="button"
+                        onClick={() => setIsCallModalOpen(true)}
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-md hover:opacity-90 active:scale-95 transition"
+                      >
                         <PhoneOff className="w-3 h-3 text-black" /> Masked Call
                       </button>
                       <button className="bg-white/10 hover:bg-white/15 text-white font-bold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 border border-white/10">
@@ -1044,6 +1050,13 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
+
+      {/* 2-Way Masked Call Modal */}
+      <MaskedCallModal
+        isOpen={isCallModalOpen}
+        onClose={() => setIsCallModalOpen(false)}
+        plateNumber="KL 11 AZ 7777"
+      />
 
     </main>
   );

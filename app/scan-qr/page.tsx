@@ -2,15 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { QrCode, Search, ShoppingCart, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { 
+  QrCode, Search, ShoppingCart, ArrowRight, CheckCircle2, 
+  PhoneOff, PhoneCall, ShieldCheck, MessageSquare
+} from "lucide-react";
 import DummyQR from "@/components/DummyQR";
 import FadeIn from "@/components/FadeIn";
+import MaskedCallModal from "@/components/MaskedCallModal";
 
 export default function ScanQR() {
   const [mode, setMode] = useState<"qr" | "plate">("qr");
   const [plateInput, setPlateInput] = useState("");
   const [searching, setSearching] = useState(false);
-  const [searchResult, setSearchResult] = useState<string | null>(null);
+  const [searchResult, setSearchResult] = useState<{ plate: string; found: boolean } | null>(null);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [activePlateForCall, setActivePlateForCall] = useState("KL 11 AZ 7777");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,8 +26,17 @@ export default function ScanQR() {
 
     setTimeout(() => {
       setSearching(false);
-      setSearchResult(`Vehicle ${plateInput.toUpperCase()} is protected by Vyra Connect. Connecting to masked alert relay...`);
-    }, 800);
+      setSearchResult({
+        plate: plateInput.toUpperCase(),
+        found: true
+      });
+      setActivePlateForCall(plateInput.toUpperCase());
+    }, 600);
+  };
+
+  const openCallForPlate = (plate: string) => {
+    setActivePlateForCall(plate);
+    setIsCallModalOpen(true);
   };
 
   return (
@@ -68,8 +83,21 @@ export default function ScanQR() {
               <div className="absolute left-0 w-full h-1 bg-cyan-400 shadow-[0_0_20px_4px_#06b6d4] animate-scan-line z-10" />
             </div>
 
-            <div className="text-center text-xs text-gray-400 font-medium tracking-wider uppercase mb-2">
+            <div className="text-center text-xs text-gray-400 font-medium tracking-wider uppercase mb-6">
               Point your smartphone camera at any Vyra Smart Tag
+            </div>
+
+            {/* Quick Demo Trigger for testing */}
+            <div className="bg-black/50 border border-white/10 rounded-2xl p-4 text-center">
+              <span className="text-xs text-gray-400">Testing on desktop?</span>
+              <button
+                type="button"
+                onClick={() => openCallForPlate("KL 11 AZ 7777")}
+                className="mt-2 w-full bg-gradient-to-r from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 text-cyan-300 border border-cyan-400/40 rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition"
+              >
+                <PhoneCall className="w-4 h-4 text-cyan-400" />
+                Test 2-Way Masked Call (Demo Vehicle)
+              </button>
             </div>
           </div>
         ) : (
@@ -90,14 +118,55 @@ export default function ScanQR() {
                 disabled={searching}
                 className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2"
               >
-                {searching ? "Searching Database..." : "Search & Notify Owner"}
+                {searching ? "Searching Database..." : "Search Vehicle"}
               </button>
             </div>
 
             {searchResult && (
-              <div className="bg-cyan-950/40 border border-cyan-500/30 p-4 rounded-xl text-sm text-cyan-200 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-                <div>{searchResult}</div>
+              <div className="bg-gradient-to-b from-[#071326] to-black border border-cyan-500/40 p-5 rounded-2xl shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <span className="text-sm font-bold text-white">Vehicle Protected by Vyra</span>
+                  </div>
+                  <span className="text-xs font-mono text-cyan-300 font-bold bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 rounded-md">
+                    {searchResult.plate}
+                  </span>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between text-xs text-gray-300">
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    Privacy Shield Active
+                  </span>
+                  <span className="font-mono text-emerald-400 font-semibold">
+                    Owner: +91 ••••• ••890
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => openCallForPlate(searchResult.plate)}
+                    className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs shadow-md hover:opacity-95 transition"
+                  >
+                    <PhoneCall className="w-4 h-4" />
+                    Masked Call
+                  </button>
+
+                  <a
+                    href={`https://wa.me/919746910890?text=${encodeURIComponent(
+                      `Hello, I am parked near your vehicle (${searchResult.plate}) and need assistance.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white/10 hover:bg-white/15 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs border border-white/10 transition"
+                  >
+                    <MessageSquare className="w-4 h-4 text-cyan-400" />
+                    Send Alert
+                  </a>
+                </div>
               </div>
             )}
           </form>
@@ -115,6 +184,13 @@ export default function ScanQR() {
           </Link>
         </div>
       </FadeIn>
+
+      {/* 2-Way Masked Call Modal */}
+      <MaskedCallModal
+        isOpen={isCallModalOpen}
+        onClose={() => setIsCallModalOpen(false)}
+        plateNumber={activePlateForCall}
+      />
     </main>
   );
 }

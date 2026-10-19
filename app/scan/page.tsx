@@ -3,6 +3,8 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
+import { PhoneCall, ShieldCheck, PhoneOff, Lock } from "lucide-react";
+import MaskedCallModal from "@/components/MaskedCallModal";
 
 // API Response interfaces
 interface Customer {
@@ -28,6 +30,7 @@ function ScanPageContent() {
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   
   // Registration Form State
   const [formData, setFormData] = useState({
@@ -233,13 +236,15 @@ function ScanPageContent() {
           </div>
 
           <div className="space-y-3.5">
-            <a 
-              href={`tel:${qrData.customer?.mobile || qrData.customer?.emergencyContact}`}
-              className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-lg font-bold text-white bg-green-500 hover:bg-green-600 shadow-[0_4px_14px_0_rgba(34,197,94,0.39)] hover:shadow-[0_6px_20px_rgba(34,197,94,0.23)] transition-all active:scale-95"
+            {/* 2-Way Masked Call Button */}
+            <button 
+              type="button"
+              onClick={() => setIsCallModalOpen(true)}
+              className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-[0_4px_14px_0_rgba(6,182,212,0.39)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.5)] transition-all active:scale-95"
             >
-              <svg className="w-6 h-6 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-              Call Owner
-            </a>
+              <PhoneCall className="w-6 h-6 mr-2.5" />
+              Call Owner (Masked 2-Way)
+            </button>
 
             <a 
               href={`whatsapp://send?phone=${(qrData.customer?.mobile || '').replace(/[^0-9]/g, '')}&text=${encodeURIComponent("Hello, I am contacting you regarding your vehicle " + regNo)}`}
@@ -260,12 +265,20 @@ function ScanPageContent() {
           
           <div className="mt-8 pt-5 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-400 font-medium flex items-center justify-center">
-              <svg className="w-4 h-4 mr-1.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-              Secure Emergency Platform by Vyra Connect
+              <ShieldCheck className="w-4 h-4 mr-1.5 text-cyan-600" />
+              Secure 2-Way Masked Platform by Vyra Connect
             </p>
           </div>
         </div>
       </div>
+
+      {/* 2-Way Masked Call Modal */}
+      <MaskedCallModal
+        isOpen={isCallModalOpen}
+        onClose={() => setIsCallModalOpen(false)}
+        plateNumber={regNo}
+        qrToken={token || undefined}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { exportSingleSheetToExcel, exportMultiSheetToExcel } from "@/lib/excelExport";
+import { rewriteToCurrentDomain } from "@/lib/config";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function ReportsPage() {
         "Activated Date": q.activated_at ? new Date(q.activated_at).toLocaleDateString() : "N/A",
         "Expiry Date": q.expires_at ? new Date(q.expires_at).toLocaleDateString() : "N/A",
         "Blocked Reason": q.blocked_reason || "None",
-        "Public Scan URL": q.qr_url || `https://vyraconnect.in/scan?token=${q.qr_token || ''}`
+        "Public Scan URL": rewriteToCurrentDomain(q.qr_url || `https://vyraconnect.in/scan?token=${q.qr_token || ''}`)
       };
     });
   };

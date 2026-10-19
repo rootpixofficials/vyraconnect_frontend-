@@ -172,9 +172,13 @@ export default function Home() {
                         <span className="text-[8px] font-mono text-cyan-400 font-bold">SMART TAG</span>
                       </div>
                       
-                      <div className="p-2 bg-white rounded-lg shadow-md my-0.5">
+                      <Link 
+                        href="/scan?token=demo"
+                        className="p-2 bg-white rounded-lg shadow-md my-0.5 hover:scale-105 active:scale-95 transition cursor-pointer block"
+                        title="Scan with camera or tap to test"
+                      >
                         <DummyQR className="w-20 h-20 p-0" />
-                      </div>
+                      </Link>
 
                       <div className="flex items-center justify-between w-full text-[8px] font-mono text-gray-400 px-1">
                         <span>ID: VYRA-001234</span>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { printQrStickers, PrintableQR } from '@/lib/stickerPrint';
 import { exportSingleSheetToExcel } from '@/lib/excelExport';
+import { rewriteToCurrentDomain } from '@/lib/config';
 
 interface QRCode {
   id: string;
@@ -248,7 +249,7 @@ export default function QRManagementPage() {
         "Activated Date": q.activated_at ? new Date(q.activated_at).toLocaleDateString() : "N/A",
         "Expiry Date": q.expires_at ? new Date(q.expires_at).toLocaleDateString() : "N/A",
         "Blocked Reason": q.blocked_reason || "None",
-        "Public Scan URL": q.qr_url || `https://vyraconnect.in/scan?token=${q.qr_token || ''}`
+        "Public Scan URL": rewriteToCurrentDomain(q.qr_url || `https://vyraconnect.in/scan?token=${q.qr_token || ''}`)
       };
     });
     exportSingleSheetToExcel(rows, filename, 'QR_Codes');

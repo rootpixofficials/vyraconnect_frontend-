@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   QrCode, Search, ShoppingCart, ArrowRight, CheckCircle2, 
-  PhoneOff, PhoneCall, ShieldCheck, MessageSquare
+  PhoneCall, ShieldCheck, MessageSquare, ExternalLink, Sparkles
 } from "lucide-react";
 import DummyQR from "@/components/DummyQR";
 import FadeIn from "@/components/FadeIn";
@@ -17,6 +17,18 @@ export default function ScanQR() {
   const [searchResult, setSearchResult] = useState<{ plate: string; found: boolean } | null>(null);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [activePlateForCall, setActivePlateForCall] = useState("KL 11 AZ 7777");
+  const [scanUrl, setScanUrl] = useState("https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=demo");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const origin = window.location.origin;
+      if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
+        setScanUrl(`${origin}/scan?token=demo`);
+      } else {
+        setScanUrl(`https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=demo`);
+      }
+    }
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,47 +89,46 @@ export default function ScanQR() {
         
         {mode === "qr" ? (
           <div>
-            <Link 
-              href="/scan?token=demo"
-              className="block group"
-              title="Click or tap to open test vehicle screen directly"
-            >
-              <div className="aspect-square bg-black/60 rounded-[2rem] border-2 border-cyan-500/30 group-hover:border-cyan-400 flex items-center justify-center mb-4 p-8 sm:p-10 relative overflow-hidden shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] cursor-pointer transition">
-                <DummyQR className="w-full h-full max-w-full max-h-full opacity-80 group-hover:opacity-100 transition" />
-                {/* Scanning Line */}
-                <div className="absolute left-0 w-full h-1 bg-cyan-400 shadow-[0_0_20px_4px_#06b6d4] animate-scan-line z-10" />
-                
-                <div className="absolute bottom-4 bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-400/50 text-[11px] font-mono text-cyan-300 shadow-lg flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  Tap to open test link or scan with phone
-                </div>
-              </div>
-            </Link>
-
-            <div className="text-center text-xs text-gray-400 font-medium tracking-wider uppercase mb-5">
-              Point your smartphone camera at this QR code or tap to open test link
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                Live QR Tag • Ready for Mobile Camera Scan
+              </span>
             </div>
 
-            {/* Quick Demo Triggers for testing */}
-            <div className="bg-black/50 border border-white/10 rounded-2xl p-4 text-center space-y-2">
-              <span className="text-xs text-gray-400">Testing on this device?</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                <Link
-                  href="/scan?token=demo"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold rounded-xl py-3 px-4 text-xs flex items-center justify-center gap-2 transition shadow-md"
-                >
-                  <QrCode className="w-4 h-4 text-black" />
-                  Open Test Vehicle (/scan)
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => openCallForPlate("KL 11 AZ 7777")}
-                  className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded-xl py-3 px-4 font-bold text-xs flex items-center justify-center gap-2 transition"
-                >
-                  <PhoneCall className="w-4 h-4 text-cyan-400" />
-                  Test 2-Way Masked Call
-                </button>
+            <div className="aspect-square bg-black/60 rounded-[2rem] border-2 border-cyan-500/30 flex items-center justify-center mb-4 p-8 sm:p-10 relative overflow-hidden shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
+              <DummyQR value={scanUrl} className="w-full h-full max-w-full max-h-full opacity-90" />
+              {/* Scanning Line */}
+              <div className="absolute left-0 w-full h-1 bg-cyan-400 shadow-[0_0_20px_4px_#06b6d4] animate-scan-line z-10" />
+            </div>
+
+            <div className="text-center space-y-2 mb-6">
+              <div className="text-xs text-gray-300 font-medium tracking-wider uppercase">
+                Scan with your smartphone camera to navigate to test link
               </div>
+              <div className="text-[11px] font-mono text-cyan-300/90 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1.5 rounded-xl inline-block max-w-full break-all">
+                {scanUrl}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-3">
+              <Link
+                href="/scan?token=demo"
+                className="w-full bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition"
+              >
+                <ExternalLink className="w-4 h-4 text-cyan-400" />
+                Open Test Tag Screen Directly on this Device
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => openCallForPlate("KL 11 AZ 7777")}
+                className="w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:opacity-95 text-white rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+              >
+                <PhoneCall className="w-4 h-4" />
+                Test 2-Way Masked Call (Exotel Gateway)
+              </button>
             </div>
           </div>
         ) : (
@@ -187,14 +198,6 @@ export default function ScanQR() {
                     Send Alert
                   </a>
                 </div>
-
-                <Link
-                  href={`/scan?token=demo`}
-                  className="w-full bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/30 font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs transition"
-                >
-                  <QrCode className="w-3.5 h-3.5 text-cyan-400" />
-                  Open Full Vehicle Emergency Page (/scan)
-                </Link>
               </div>
             )}
           </form>

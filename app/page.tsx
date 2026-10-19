@@ -173,9 +173,9 @@ export default function Home() {
                       </div>
                       
                       <Link 
-                        href="/scan?token=demo"
+                        href="/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d"
                         className="p-2 bg-white rounded-lg shadow-md my-0.5 hover:scale-105 active:scale-95 transition cursor-pointer block"
-                        title="Scan with phone camera or click to open test scan page"
+                        title="Scan with phone camera or tap to open test link"
                       >
                         <DummyQR className="w-20 h-20 p-0" />
                       </Link>

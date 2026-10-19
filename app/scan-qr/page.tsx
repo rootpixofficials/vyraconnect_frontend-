@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { 
   QrCode, Search, ShoppingCart, ArrowRight, CheckCircle2, 
-  PhoneCall, ShieldCheck, MessageSquare, ExternalLink, Sparkles
+  PhoneOff, PhoneCall, ShieldCheck, MessageSquare
 } from "lucide-react";
 import DummyQR from "@/components/DummyQR";
 import FadeIn from "@/components/FadeIn";
@@ -17,18 +17,6 @@ export default function ScanQR() {
   const [searchResult, setSearchResult] = useState<{ plate: string; found: boolean } | null>(null);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [activePlateForCall, setActivePlateForCall] = useState("KL 11 AZ 7777");
-  const [scanUrl, setScanUrl] = useState("https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=demo");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const origin = window.location.origin;
-      if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
-        setScanUrl(`${origin}/scan?token=demo`);
-      } else {
-        setScanUrl(`https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=demo`);
-      }
-    }
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,38 +80,38 @@ export default function ScanQR() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                Live QR Tag • Ready for Mobile Camera Scan
+                Live Test Tag • Scan with Smartphone Camera
               </span>
             </div>
 
             <div className="aspect-square bg-black/60 rounded-[2rem] border-2 border-cyan-500/30 flex items-center justify-center mb-4 p-8 sm:p-10 relative overflow-hidden shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
-              <DummyQR value={scanUrl} className="w-full h-full max-w-full max-h-full opacity-90" />
+              <DummyQR className="w-full h-full max-w-full max-h-full opacity-90" />
               {/* Scanning Line */}
               <div className="absolute left-0 w-full h-1 bg-cyan-400 shadow-[0_0_20px_4px_#06b6d4] animate-scan-line z-10" />
             </div>
 
             <div className="text-center space-y-2 mb-6">
               <div className="text-xs text-gray-300 font-medium tracking-wider uppercase">
-                Scan with your smartphone camera to navigate to test link
+                Scan with your phone camera to navigate directly to test link:
               </div>
               <div className="text-[11px] font-mono text-cyan-300/90 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1.5 rounded-xl inline-block max-w-full break-all">
-                {scanUrl}
+                https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d
               </div>
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions for Testing on this device */}
             <div className="space-y-3">
               <Link
-                href="/scan?token=demo"
+                href="/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d"
                 className="w-full bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition"
               >
-                <ExternalLink className="w-4 h-4 text-cyan-400" />
+                <QrCode className="w-4 h-4 text-cyan-400" />
                 Open Test Tag Screen Directly on this Device
               </Link>
 
               <button
                 type="button"
-                onClick={() => openCallForPlate("KL 11 AZ 7777")}
+                onClick={() => openCallForPlate("KL 55 BH 1234")}
                 className="w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:opacity-95 text-white rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition shadow-[0_0_20px_rgba(6,182,212,0.3)]"
               >
                 <PhoneCall className="w-4 h-4" />

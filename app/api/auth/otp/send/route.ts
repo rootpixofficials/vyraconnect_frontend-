@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 
-const BACKEND_API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.vyraconnect.in/api";
+const rawBase = process.env.NEXT_PUBLIC_API_URL || "https://api.vyraconnect.in";
+const BACKEND_API_BASE = rawBase.endsWith("/api") ? rawBase : `${rawBase.replace(/\/$/, "")}/api`;
 
 export async function POST(req: Request) {
   try {

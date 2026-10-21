@@ -38,6 +38,7 @@ export default function QRManagementPage() {
   const [qrs, setQrs] = useState<QRCode[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,16 @@ export default function QRManagementPage() {
 
   // View Modal State
   const [selectedQr, setSelectedQr] = useState<QRCode | null>(null);
+
+  // Add Vehicle Under Scanner State
+  const [isAddingVehicle, setIsAddingVehicle] = useState(false);
+  const [vehRegNumber, setVehRegNumber] = useState('');
+  const [vehType, setVehType] = useState('Four Wheeler');
+  const [vehMake, setVehMake] = useState('');
+  const [vehModel, setVehModel] = useState('');
+  const [vehColor, setVehColor] = useState('');
+  const [vehCustomerId, setVehCustomerId] = useState('');
+  const [isSavingVehicle, setIsSavingVehicle] = useState(false);
 
   // Block Modal State
   const [blockQrId, setBlockQrId] = useState<string | null>(null);
@@ -77,21 +88,94 @@ export default function QRManagementPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [qrRes, batchRes, custRes] = await Promise.all([
+      const [qrRes, batchRes, custRes, vehRes] = await Promise.all([
         axios.get('https://api.vyraconnect.in/api/admin/qr/list'),
         axios.get('https://api.vyraconnect.in/api/admin/qr-batches/list').catch(() => ({ data: { batches: [] } })),
-        axios.get('https://api.vyraconnect.in/api/admin/customers')
+        axios.get('https://api.vyraconnect.in/api/admin/customers'),
+        axios.get('https://api.vyraconnect.in/api/admin/vehicles').catch(() => ({ data: [] }))
       ]);
 
       setQrs(qrRes.data?.qrs || qrRes.data?.data || (Array.isArray(qrRes.data) ? qrRes.data : []));
       setBatches(batchRes.data?.batches || (Array.isArray(batchRes.data) ? batchRes.data : []));
       setCustomers(custRes.data?.customers || custRes.data?.data || (Array.isArray(custRes.data) ? custRes.data : []));
+      setVehicles(Array.isArray(vehRes.data) ? vehRes.data : vehRes.data?.vehicles || []);
       setError(null);
     } catch (err: any) {
       console.error('Failed to load QR management data:', err);
       setError('Failed to load QR codes.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddVehicleUnderScanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedQr) return;
+    if (!vehRegNumber.trim()) {
+      alert('Please enter a vehicle registration number.');
+      return;
+    }
+
+    const targetCustomerId = selectedQr.customer_id || vehCustomerId;
+    if (!targetCustomerId) {
+      alert('Please select or assign a customer to link this vehicle under this scanner.');
+      return;
+    }
+
+    try {
+      setIsSavingVehicle(true);
+      // 1. If QR was unassigned, assign QR to selected customer first
+      if (!selectedQr.customer_id && vehCustomerId) {
+        await axios.post('https://api.vyraconnect.in/api/admin/qr/assign', {
+          qrId: selectedQr.id,
+          customerId: vehCustomerId
+        });
+      }
+
+      // 2. Create the vehicle under the customer
+      await axios.post('https://api.vyraconnect.in/api/admin/vehicles', {
+        customer_id: targetCustomerId,
+        vehicle_type: vehType,
+        registration_number: vehRegNumber.trim().toUpperCase(),
+        make: vehMake.trim(),
+        model: vehModel.trim(),
+        color: vehColor.trim()
+      });
+
+      // 3. Reset form and refresh
+      setVehRegNumber('');
+      setVehMake('');
+      setVehModel('');
+      setVehColor('');
+      setIsAddingVehicle(false);
+      await fetchData();
+
+      // Update selectedQr customer_id in view if it was newly assigned
+      if (!selectedQr.customer_id && vehCustomerId) {
+        setSelectedQr({
+          ...selectedQr,
+          customer_id: vehCustomerId,
+          status: selectedQr.status === 'AVAILABLE' ? 'ASSIGNED' : selectedQr.status
+        });
+      }
+
+      alert('Vehicle successfully added under this scanner!');
+    } catch (err: any) {
+      console.error('Failed to add vehicle under scanner:', err);
+      alert(err.response?.data?.error || 'Failed to add vehicle under scanner.');
+    } finally {
+      setIsSavingVehicle(false);
+    }
+  };
+
+  const handleDeleteVehicleUnderScanner = async (vehicleId: string) => {
+    if (!confirm('Are you sure you want to remove this vehicle from this scanner?')) return;
+    try {
+      await axios.delete(`https://api.vyraconnect.in/api/admin/vehicles/${vehicleId}`);
+      await fetchData();
+    } catch (err: any) {
+      console.error('Failed to remove vehicle:', err);
+      alert(err.response?.data?.error || 'Failed to remove vehicle.');
     }
   };
 
@@ -651,6 +735,22 @@ export default function QRManagementPage() {
                               🆔 {qr.customer_id}
                             </p>
                           )}
+                          {/* Vehicles summary under this scanner */}
+                          {(() => {
+                            const linkedVehs = vehicles.filter(v => v.customer_id === qr.customer_id);
+                            if (linkedVehs.length > 0) {
+                              return (
+                                <div className="mt-1.5 pt-1.5 border-t border-slate-200/60 flex items-center gap-1 text-[10px] font-bold text-slate-700">
+                                  <span>🚗</span>
+                                  <span>{linkedVehs.length} {linkedVehs.length === 1 ? 'Vehicle' : 'Vehicles'}:</span>
+                                  <span className="font-mono text-cyan-700 font-extrabold truncate">
+                                    {linkedVehs.map(v => v.registration_number || v.registrationNumber).join(', ')}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       ) : (
                         <p className="text-xs font-medium text-slate-400 italic">Available (Not Assigned)</p>
@@ -788,11 +888,196 @@ export default function QRManagementPage() {
                   {selectedQr.qr_url && (
                     <div className="flex flex-col border-t pt-2">
                       <span className="text-gray-500 font-bold mb-1">Target Scan URL</span>
-                      <a href={selectedQr.qr_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all">
-                        {selectedQr.qr_url}
+                      <a 
+                        href={rewriteToCurrentDomain(selectedQr.qr_url)} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-cyan-600 font-mono text-[11px] hover:underline break-all"
+                      >
+                        {rewriteToCurrentDomain(selectedQr.qr_url)}
                       </a>
                     </div>
                   )}
+                </div>
+
+                {/* Linked Customer & Multiple Vehicles Under This Scanner */}
+                <div className="mt-6 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
+                        <span>🚗</span> Vehicles Under This Scanner
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        {selectedQr.customer_id 
+                          ? `Linked to customer: ${customers.find(c => c.id === selectedQr.customer_id)?.full_name || selectedQr.customer_id}` 
+                          : 'Scanner not yet assigned to a customer'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingVehicle(!isAddingVehicle);
+                        setVehCustomerId(selectedQr.customer_id || '');
+                      }}
+                      className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                    >
+                      <span>{isAddingVehicle ? '✕ Close' : '+ Add Vehicle'}</span>
+                    </button>
+                  </div>
+
+                  {/* Add Vehicle Form */}
+                  {isAddingVehicle && (
+                    <form onSubmit={handleAddVehicleUnderScanner} className="bg-white p-4 rounded-xl border border-cyan-200 shadow-sm mb-4 space-y-3">
+                      <div className="text-xs font-bold text-cyan-800 border-b pb-1.5">
+                        Register New Vehicle Under {selectedQr.qr_serial}
+                      </div>
+
+                      {!selectedQr.customer_id && (
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Assign to Customer *</label>
+                          <select
+                            value={vehCustomerId}
+                            onChange={(e) => setVehCustomerId(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs"
+                            required
+                          >
+                            <option value="">Select a Customer</option>
+                            {customers.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.full_name || c.name} ({c.mobile})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Registration Plate *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. KL 10 AV 4099"
+                            value={vehRegNumber}
+                            onChange={(e) => setVehRegNumber(e.target.value.toUpperCase())}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs font-mono uppercase"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Vehicle Type *</label>
+                          <select
+                            value={vehType}
+                            onChange={(e) => setVehType(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs"
+                          >
+                            <option value="Four Wheeler">Four Wheeler (Car)</option>
+                            <option value="Two Wheeler">Two Wheeler (Bike)</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Make</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Porsche"
+                            value={vehMake}
+                            onChange={(e) => setVehMake(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Model</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Taycan"
+                            value={vehModel}
+                            onChange={(e) => setVehModel(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Color</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. White"
+                            value={vehColor}
+                            onChange={(e) => setVehColor(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-2 text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddingVehicle(false)}
+                          className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSavingVehicle}
+                          className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow disabled:opacity-50"
+                        >
+                          {isSavingVehicle ? 'Saving...' : 'Save & Link Vehicle'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* List of Vehicles under this scanner */}
+                  {(() => {
+                    const scannerVehicles = vehicles.filter(v => v.customer_id === selectedQr.customer_id);
+                    if (scannerVehicles.length === 0) {
+                      return (
+                        <div className="text-center py-4 bg-white rounded-xl border border-dashed border-gray-200">
+                          <p className="text-xs text-gray-400">No vehicles added under this scanner tag yet.</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">Click "+ Add Vehicle" above to link multiple vehicles.</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="space-y-2">
+                        {scannerVehicles.map((v) => (
+                          <div key={v.id} className="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between shadow-xs">
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-base">
+                                {v.vehicle_type?.toLowerCase().includes('two') || v.vehicle_type?.toLowerCase().includes('bike') ? '🏍️' : '🚗'}
+                              </span>
+                              <div>
+                                <div className="font-mono font-black text-xs text-slate-800">
+                                  {v.registration_number || v.registrationNumber}
+                                </div>
+                                <div className="text-[10px] text-gray-500">
+                                  {[v.make, v.model, v.color].filter(Boolean).join(' • ') || v.vehicle_type}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                                v.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {v.status || 'ACTIVE'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteVehicleUnderScanner(v.id)}
+                                title="Remove vehicle"
+                                className="text-red-500 hover:text-red-700 text-xs p-1 rounded hover:bg-red-50 transition"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

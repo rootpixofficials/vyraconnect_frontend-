@@ -18,6 +18,7 @@ interface Vehicle {
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [qrs, setQrs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "BLOCKED">("ALL");
@@ -40,12 +41,14 @@ export default function VehiclesPage() {
 
   const fetchData = async () => {
     try {
-      const [vehRes, custRes] = await Promise.all([
+      const [vehRes, custRes, qrRes] = await Promise.all([
         axios.get("https://api.vyraconnect.in/api/admin/vehicles"),
-        axios.get("https://api.vyraconnect.in/api/admin/customers")
+        axios.get("https://api.vyraconnect.in/api/admin/customers"),
+        axios.get("https://api.vyraconnect.in/api/admin/qr/list").catch(() => ({ data: { qrs: [] } }))
       ]);
       setVehicles(Array.isArray(vehRes.data) ? vehRes.data : vehRes.data.vehicles || []);
       setCustomers(Array.isArray(custRes.data) ? custRes.data : custRes.data.customers || []);
+      setQrs(qrRes.data?.qrs || qrRes.data?.data || (Array.isArray(qrRes.data) ? qrRes.data : []));
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -321,6 +324,27 @@ export default function VehiclesPage() {
                         </span>
                       )}
                     </div>
+
+                    {/* Linked Scanner Tag */}
+                    {(() => {
+                      const linkedQrs = qrs.filter(q => q.customer_id === vehicle.customer_id);
+                      return (
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Scanner Tag</span>
+                          {linkedQrs.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {linkedQrs.map(q => (
+                                <span key={q.id} className="px-2 py-0.5 rounded-lg bg-cyan-100 text-cyan-800 font-mono font-bold text-[11px] border border-cyan-200">
+                                  🏷️ {q.qr_serial}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic text-[11px]">No Tag Linked</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -565,7 +589,30 @@ export default function VehiclesPage() {
 
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                    👤 Registered Owner
+                    🏷️ Link to Scanner Tag (Optional)
+                  </label>
+                  <select
+                    value={qrs.find(q => q.customer_id === formData.customer_id)?.id || ""}
+                    onChange={(e) => {
+                      const selectedQr = qrs.find(q => q.id === e.target.value);
+                      if (selectedQr?.customer_id) {
+                        setFormData({ ...formData, customer_id: selectedQr.customer_id });
+                      }
+                    }}
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono font-bold focus:border-cyan-500 focus:ring-0 outline-none transition-colors bg-white mb-2"
+                  >
+                    <option value="">-- Select Scanner Tag (Auto-links Owner) --</option>
+                    {qrs.map((qr) => (
+                      <option key={qr.id} value={qr.id}>
+                        {qr.qr_serial} ({qr.status}) {qr.customer_id ? `• Linked to customer` : `• Available`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    👤 Registered Owner *
                   </label>
                   <div className="border-2 border-slate-200 rounded-2xl overflow-hidden bg-slate-50 max-h-40 overflow-y-auto divide-y divide-slate-100">
                     {customers.map(c => (

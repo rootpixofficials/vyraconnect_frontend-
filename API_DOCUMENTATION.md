@@ -1,0 +1,378 @@
+# Vyra Connect — Complete System API Documentation
+
+Comprehensive REST API and Gateway Reference for **Vyra Connect** (Smart Vehicle Identification, Emergency Scanner, and 2-Way Privacy Calling Platform).
+
+---
+
+## 1. Environments & Base URLs
+
+| Service | Environment | Base URL |
+| :--- | :--- | :--- |
+| **Backend Express API** | Production / Test | `https://api.vyraconnect.in/api`<br>*(Direct: `https://phpstack-1650272-6714822.cloudwaysapps.com/api`)* |
+| **Frontend Application & Webhooks** | Test Server (Cloudways) | `https://phpstack-1650272-6724559.cloudwaysapps.com` |
+| **Public Tag Scan URL Base** | Test Server (Cloudways) | `https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token={qr_token}` |
+
+---
+
+## 2. Authentication & Admin Access
+
+### `POST /admin/login`
+Authenticates administrative personnel and generates access session.
+
+- **Request Body**:
+  ```json
+  {
+    "username": "admin",
+    "password": "your_secure_password"
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "admin": {
+      "id": "admin-uuid",
+      "name": "Nihal",
+      "role": "SUPERADMIN"
+    }
+  }
+  ```
+
+---
+
+## 3. QR Codes & Scanners Management
+
+### `GET /admin/qr/list`
+Retrieves up to 200 of the latest generated QR scanner tags with complete metadata.
+
+- **Response `200 OK`**:
+  ```json
+  {
+    "qrs": [
+      {
+        "id": "3d2511b1-7ecd-41fb-83f0-df22c2fc2439",
+        "qr_serial": "V-000010",
+        "qr_token": "2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+        "qr_url": "https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+        "qr_image_base64": "data:image/png;base64,iVBORw0KGgo...",
+        "customer_id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+        "product_type": "V",
+        "status": "ACTIVE",
+        "batch_id": "475df71d-2eaf-4052-ad19-e9c96047b4d7",
+        "generated_at": "2026-10-08T20:36:10.395Z",
+        "activated_at": "2026-10-08T21:07:53.805Z",
+        "expires_at": "2036-10-08T21:07:53.805Z"
+      }
+    ]
+  }
+  ```
+
+### `POST /admin/qr-batches/bulk-generate`
+Generates a batch of scannable QR sticker tags and prepares printable PDF sheets.
+
+- **Request Body**:
+  ```json
+  {
+    "quantity": 10,
+    "productType": "V"
+  }
+  ```
+- **Response `201 Created`**:
+  ```json
+  {
+    "message": "Bulk QR generated successfully",
+    "batch": {
+      "id": "batch-uuid",
+      "batch_code": "BATCH-A1B2C3D4",
+      "quantity": 10,
+      "generated_count": 10,
+      "status": "COMPLETED",
+      "pdf_path": "/storage/batches/BATCH-A1B2C3D4.pdf"
+    }
+  }
+  ```
+
+### `POST /admin/qr/:id/activate`
+Activates an available or assigned QR tag for a 10-year validity cycle.
+
+### `POST /admin/qr/:id/block`
+Disables public scans immediately when a vehicle tag is lost or suspended.
+- **Request Body**:
+  ```json
+  { "reason": "Reported lost windshield tag" }
+  ```
+
+### `POST /admin/qr/:id/unblock`
+Restores a previously blocked QR tag to its active status.
+
+### `POST /admin/qr/:id/replace`
+Generates a new replacement QR tag while automatically transferring customer ownership and archiving the old tag.
+- **Request Body**:
+  ```json
+  { "reason": "Physical sticker damaged" }
+  ```
+
+### `POST /admin/qr/assign`
+Links an available QR code to a customer record.
+- **Request Body**:
+  ```json
+  {
+    "qrId": "qr-uuid",
+    "customerId": "customer-uuid"
+  }
+  ```
+
+---
+
+## 4. Multi-Vehicle Management Under Scanner (Admin-Only)
+
+Each scanner tag (`QrCode`) is linked to an authorized Customer (`Customer`), which holds **multiple registered vehicles (`Vehicle[]`)**. The Admin UI allows direct assignment and registration of multiple cars or motorcycles under any specific scanner.
+
+### `GET /admin/vehicles`
+Lists all vehicles across all customer scanners.
+
+- **Response `200 OK`**:
+  ```json
+  [
+    {
+      "id": "veh-uuid-1",
+      "customer_id": "cust-uuid-1",
+      "registration_number": "KL 55 BH 1234",
+      "vehicle_type": "Two Wheeler",
+      "make": "Yamaha",
+      "model": "R15 V4",
+      "color": "Racing Blue",
+      "status": "ACTIVE",
+      "created_at": "2026-10-08T21:07:53.802Z"
+    },
+    {
+      "id": "veh-uuid-2",
+      "customer_id": "cust-uuid-1",
+      "registration_number": "KL 10 AV 4099",
+      "vehicle_type": "Four Wheeler",
+      "make": "Porsche",
+      "model": "Taycan 4S",
+      "color": "Carrara White",
+      "status": "ACTIVE",
+      "created_at": "2026-10-20T10:15:20.100Z"
+    }
+  ]
+  ```
+
+### `POST /admin/vehicles`
+Adds a new vehicle under a customer's scanner.
+
+- **Request Body**:
+  ```json
+  {
+    "customer_id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+    "vehicle_type": "Four Wheeler",
+    "registration_number": "KL 10 AV 4099",
+    "make": "BMW",
+    "model": "M340i xDrive",
+    "color": "Portimao Blue"
+  }
+  ```
+- **Response `201 Created`**:
+  ```json
+  {
+    "id": "new-veh-uuid",
+    "customer_id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+    "vehicle_type": "Four Wheeler",
+    "registration_number": "KL 10 AV 4099",
+    "make": "BMW",
+    "model": "M340i xDrive",
+    "color": "Portimao Blue",
+    "status": "ACTIVE",
+    "created_at": "2026-10-20T14:45:00.000Z"
+  }
+  ```
+
+### `PATCH /admin/vehicles/:id`
+Updates vehicle specifications (Make, Model, Color, Plate).
+
+### `PATCH /admin/vehicles/:id/status`
+Toggles vehicle status between `ACTIVE` and `BLOCKED`.
+- **Request Body**: `{ "status": "BLOCKED" }`
+
+### `DELETE /admin/vehicles/:id`
+Removes a vehicle from the customer's scanner profile.
+
+---
+
+## 5. Public Tag Scan & Emergency Registration
+
+### `GET /scan/:token`
+Public endpoint queried by smartphones scanning a physical Vyra Smart Tag.
+
+- **Path Parameter**: `token` (32-byte hex string)
+- **Response Behavior**:
+  - **`AVAILABLE`**: Directs scanner to tag onboarding & registration form.
+  - **`ACTIVE`**: Returns vehicle identification, multiple vehicles under this scanner, emergency contacts, and activates masked communication actions.
+  - **`BLOCKED`**: Returns `403 Forbidden` with blocking reason.
+
+- **Response `200 OK` (Active Tag with Multiple Vehicles)**:
+  ```json
+  {
+    "qr": {
+      "id": "qr-uuid",
+      "qr_serial": "V-000010",
+      "status": "ACTIVE",
+      "customer": {
+        "full_name": "Nikhrawo",
+        "mobile": "0987456321",
+        "vehicles": [
+          {
+            "id": "v1",
+            "registration_number": "KL 55 BH 1234",
+            "vehicle_type": "Two Wheeler",
+            "make": "Yamaha",
+            "model": "R15",
+            "status": "ACTIVE"
+          },
+          {
+            "id": "v2",
+            "registration_number": "KL 10 AV 4099",
+            "vehicle_type": "Four Wheeler",
+            "make": "BMW",
+            "model": "M340i",
+            "status": "ACTIVE"
+          }
+        ],
+        "emergency_contacts": [
+          {
+            "name": "Emergency Desk",
+            "mobile": "9876543210",
+            "is_primary": true
+          }
+        ]
+      }
+    }
+  }
+  ```
+
+### `POST /scan/:token/register`
+Self-service customer activation for unassigned tags.
+- **Request Body**:
+  ```json
+  {
+    "name": "Vehicle Owner",
+    "mobile": "+919876543210",
+    "email": "owner@example.com",
+    "vehicleType": "Four Wheeler",
+    "registrationNumber": "KL 10 AV 4099",
+    "make": "Audi",
+    "model": "RS5"
+  }
+  ```
+
+---
+
+## 6. Exotel 2-Way Number Masking Gateway
+
+Connects scanner and owner over an encrypted virtual PSTN proxy bridge so that **neither party's actual phone number is revealed**.
+
+### `GET /api/call/mask`
+Queries Exotel gateway health, authentication status, and business KYC state.
+
+- **Response `200 OK`**:
+  ```json
+  {
+    "service": "Vyra Connect 2-Way Call Masking",
+    "provider": "Exotel",
+    "account": {
+      "configured": true,
+      "statusCode": 200,
+      "account": {
+        "Sid": "rootpixtechnolgies1",
+        "FriendlyName": "rootpixtechnolgies1 - nihalmohd8",
+        "Type": "Trial",
+        "Status": "active",
+        "KycStatus": "uploaded"
+      }
+    }
+  }
+  ```
+
+### `POST /api/call/mask`
+Initiates a 2-way masked call bridge.
+
+- **Request Body**:
+  ```json
+  {
+    "scannerNumber": "+919746910890",
+    "plateNumber": "KL 10 AV 4099",
+    "ownerNumber": "+919746910890"
+  }
+  ```
+
+- **Response `200 OK` (KYC Pending Graceful Fallback)**:
+  ```json
+  {
+    "success": false,
+    "kycPending": true,
+    "scannerMasked": "+91 ••••• ••890",
+    "ownerMasked": "+91 ••••• ••890",
+    "virtualNumber": "08047190000",
+    "message": "Exotel credentials are active! However, your Exotel account KYC verification is currently under review by their team. Once KYC is approved, calls will ring automatically."
+  }
+  ```
+
+- **Response `200 OK` (Post-KYC Live Call Trigger)**:
+  ```json
+  {
+    "success": true,
+    "callSid": "exotel-call-sid-12345",
+    "scannerMasked": "+91 ••••• ••890",
+    "ownerMasked": "+91 ••••• ••890",
+    "virtualNumber": "08047190000",
+    "status": "in-progress"
+  }
+  ```
+
+---
+
+## 7. Store Orders & Contact Notification Webhooks
+
+### `POST /api/order`
+Submits ₹399 hardware kit purchases, writes order records to `data/orders.json`, and dispatches an HTML notification receipt to `vyraconnect.in@gmail.com` via authenticated Google SMTP.
+
+- **Request Body**:
+  ```json
+  {
+    "fullName": "Mohammed Nihal",
+    "mobile": "+91 97469 10890",
+    "email": "customer@gmail.com",
+    "address": "Rootpix Technologies, Calicut",
+    "city": "Calicut",
+    "state": "Kerala",
+    "pincode": "673001",
+    "quantity": 1,
+    "totalPrice": 399,
+    "notes": "Fast delivery requested"
+  }
+  ```
+
+### `POST /api/contact`
+Submits general customer inquiries, writes entries to `data/contact_inquiries.json`, and dispatches notification emails with subject pattern `[Vyra Contact Inquiry]`.
+
+---
+
+## 8. Data Architecture Summary
+
+```
++--------------------------------------------------------------------+
+|                             Customer                               |
+| (id, customer_code, full_name, mobile, email, address, status)     |
++---------------------------------+----------------------------------+
+                                  |
+                +-----------------+-----------------+
+                | 1:N                               | 1:N
+                v                                   v
++-------------------------------+   +--------------------------------+
+|            QrCode             |   |            Vehicle             |
+| (id, qr_serial, qr_token,     |   | (id, customer_id,              |
+|  qr_url [TEST LINK ENFORCED], |   |  registration_number,          |
+|  qr_image_base64, status)     |   |  vehicle_type, make, model)    |
++-------------------------------+   +--------------------------------+
+```

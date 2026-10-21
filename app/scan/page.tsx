@@ -28,6 +28,7 @@ function ScanPageContent() {
   const token = searchParams.get("token");
 
   const [qrData, setQrData] = useState<QRData | null>(null);
+  const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
@@ -236,8 +237,11 @@ function ScanPageContent() {
   }
 
   // ACTIVATED State
-  const regNo = qrData?.customer?.vehicles?.[0]?.registration_number || qrData?.customer?.registrationNumber || 'UNKNOWN';
-  const vType = qrData?.customer?.vehicles?.[0]?.vehicle_type || qrData?.customer?.vehicleType || 'Vehicle';
+  const vehiclesList = qrData?.customer?.vehicles || [];
+  const currentVehicle = vehiclesList[selectedVehicleIndex] || vehiclesList[0] || {};
+  const regNo = currentVehicle.registration_number || currentVehicle.registrationNumber || qrData?.customer?.registrationNumber || 'UNKNOWN';
+  const vType = currentVehicle.vehicle_type || qrData?.customer?.vehicleType || 'Vehicle';
+  const vMakeModel = [currentVehicle.make, currentVehicle.model].filter(Boolean).join(' ');
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center">
@@ -256,12 +260,46 @@ function ScanPageContent() {
         </div>
         
         <div className="p-6 sm:p-8">
+          {/* Multi-vehicle switcher under this scanner */}
+          {vehiclesList.length > 1 && (
+            <div className="mb-6 p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-center">
+              <p className="text-[10px] font-black uppercase tracking-wider text-blue-800 mb-2">
+                Multiple Vehicles Under This Scanner ({vehiclesList.length})
+              </p>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {vehiclesList.map((v: any, idx: number) => (
+                  <button
+                    key={v.id || idx}
+                    type="button"
+                    onClick={() => setSelectedVehicleIndex(idx)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition ${
+                      selectedVehicleIndex === idx
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {v.registration_number || v.registrationNumber}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="text-center mb-8 bg-gray-50 rounded-2xl py-5 px-4 border border-gray-100 shadow-inner">
             <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Vehicle Identified</h2>
             <div className="text-3xl font-black text-gray-800 uppercase tracking-wide">
               {regNo}
             </div>
-            <p className="text-blue-600 mt-1 capitalize font-semibold text-sm bg-blue-50 inline-block px-3 py-1 rounded-full">{vType}</p>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-blue-600 capitalize font-semibold text-xs bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                {vType}
+              </span>
+              {vMakeModel && (
+                <span className="text-gray-600 font-medium text-xs bg-gray-100 px-3 py-1 rounded-full">
+                  {vMakeModel}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3.5">

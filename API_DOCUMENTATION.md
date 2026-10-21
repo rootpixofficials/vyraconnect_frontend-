@@ -14,9 +14,115 @@ Comprehensive REST API and Gateway Reference for **Vyra Connect** (Smart Vehicle
 
 ---
 
-## 2. Authentication & Admin Access
+## 2. Authentication & Customer OTP Access
 
-### `POST /admin/login`
+### `POST /api/auth/otp/send`
+Sends a one-time login verification password (OTP) to the customer's mobile number.
+
+- **Request Body**:
+  ```json
+  {
+    "mobile": "9876543210",
+    "purpose": "LOGIN"
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "message": "OTP sent successfully to 9876543210",
+    "mobile": "9876543210",
+    "user_exists": true,
+    "expires_in_seconds": 600,
+    "test_otp": "748291"
+  }
+  ```
+
+---
+
+### `POST /api/auth/otp/verify`
+Verifies the submitted OTP against active verification records and checks if the user is an existing customer.
+
+- **Request Body**:
+  ```json
+  {
+    "mobile": "9876543210",
+    "otp": "748291"
+  }
+  ```
+
+#### Scenario A: Existing User (`is_existing_user: true`)
+When the mobile number is already registered to a customer profile in the system:
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "is_existing_user": true,
+    "message": "OTP verified successfully. Login successful.",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "customer": {
+      "id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+      "customer_code": "CUST-819203",
+      "full_name": "Nikhrawo",
+      "mobile": "9876543210",
+      "email": "user@example.com",
+      "profile_image": null,
+      "address": "HiLite Mall, Thondayad",
+      "city": "Calicut",
+      "state": "Kerala",
+      "pincode": "673014",
+      "status": "ACTIVE",
+      "otp_verified": true,
+      "vehicles": [
+        {
+          "id": "v1-uuid",
+          "vehicle_type": "Four Wheeler",
+          "registration_number": "KL 10 AV 4099",
+          "make": "BMW",
+          "model": "M340i",
+          "color": "Portimao Blue",
+          "status": "ACTIVE"
+        }
+      ],
+      "emergency_contacts": [
+        {
+          "id": "e1-uuid",
+          "name": "Emergency Desk",
+          "relationship": "Brother",
+          "mobile": "9876543211",
+          "is_primary": true
+        }
+      ],
+      "qr_codes": [
+        {
+          "id": "qr-uuid",
+          "qr_serial": "V-000010",
+          "qr_token": "2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "qr_url": "https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "status": "ACTIVE"
+        }
+      ]
+    }
+  }
+  ```
+
+#### Scenario B: New User (`is_existing_user: false`)
+When the OTP is correct, but the mobile number is NOT associated with any existing customer, the API directs the user to register by returning `is_existing_user: false`, `action_required: "REGISTER"`, and the public registration URL:
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "is_existing_user": false,
+    "action_required": "REGISTER",
+    "message": "OTP verified successfully. User is not registered with this mobile number. Please register your account.",
+    "mobile": "9876543210",
+    "registration_url": "https://phpstack-1650272-6724559.cloudwaysapps.com/scan?mobile=9876543210&action=register"
+  }
+  ```
+
+---
+
+### `POST /api/admin/login`
 Authenticates administrative personnel and generates access session.
 
 - **Request Body**:
@@ -200,7 +306,126 @@ Removes a vehicle from the customer's scanner profile.
 
 ---
 
-## 5. Public Tag Scan & Emergency Registration
+## 5. Customer Profile Management (View & Edit)
+
+### `GET /api/customer/profile` or `GET /api/customer/profile/:id`
+Retrieves a customer's detailed profile including all registered vehicles, emergency contacts, and active QR scanner tags.
+
+- **Identification Options**:
+  - **Path Parameter**: `/:id` (Customer UUID)
+  - **Query Parameters**: `?id=...` or `?mobile=9876543210`
+  - **Authorization Header**: `Bearer <JWT_TOKEN>` (token obtained from OTP verification)
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "customer": {
+      "id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+      "customer_code": "CUST-819203",
+      "full_name": "Nikhrawo",
+      "mobile": "9876543210",
+      "email": "user@example.com",
+      "profile_image": null,
+      "address": "HiLite Mall, Thondayad",
+      "city": "Calicut",
+      "state": "Kerala",
+      "pincode": "673014",
+      "status": "ACTIVE",
+      "otp_verified": true,
+      "vehicles": [
+        {
+          "id": "v1-uuid",
+          "vehicle_type": "Four Wheeler",
+          "registration_number": "KL 10 AV 4099",
+          "make": "BMW",
+          "model": "M340i",
+          "variant": "xDrive",
+          "color": "Portimao Blue",
+          "status": "ACTIVE",
+          "created_at": "2026-10-20T10:15:20.100Z"
+        }
+      ],
+      "emergency_contacts": [
+        {
+          "id": "e1-uuid",
+          "name": "Emergency Desk",
+          "relationship": "Brother",
+          "mobile": "9876543211",
+          "is_primary": true,
+          "status": "ACTIVE"
+        }
+      ],
+      "qr_codes": [
+        {
+          "id": "qr-uuid",
+          "qr_serial": "V-000010",
+          "qr_token": "2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "qr_url": "https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "status": "ACTIVE",
+          "activated_at": "2026-10-08T21:07:53.805Z",
+          "expires_at": "2036-10-08T21:07:53.805Z"
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+### `PATCH /api/customer/profile` or `PATCH /api/customer/profile/:id`
+Updates customer personal profile details, address, or emergency contacts. (Also supports `PUT`).
+
+- **Identification Options**:
+  - `/:id` in URL, `?id=...`, `?mobile=...`, `{ "customerId": "..." }` in body, or `Bearer <JWT_TOKEN>` header.
+- **Request Body**:
+  ```json
+  {
+    "full_name": "Nikhrawo Updated",
+    "email": "nikhrawo.new@gmail.com",
+    "address": "Floor 4, Cyberpark",
+    "city": "Calicut",
+    "state": "Kerala",
+    "pincode": "673016",
+    "emergencyName": "Alex Morgan",
+    "emergencyMobile": "9876543299",
+    "emergencyRelationship": "Spouse"
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "message": "Profile updated successfully",
+    "customer": {
+      "id": "9ebc5712-bcdf-4a67-9e27-91c2005d7f55",
+      "customer_code": "CUST-819203",
+      "full_name": "Nikhrawo Updated",
+      "mobile": "9876543210",
+      "email": "nikhrawo.new@gmail.com",
+      "address": "Floor 4, Cyberpark",
+      "city": "Calicut",
+      "state": "Kerala",
+      "pincode": "673016",
+      "status": "ACTIVE",
+      "otp_verified": true,
+      "vehicles": [ ... ],
+      "emergency_contacts": [
+        {
+          "id": "e1-uuid",
+          "name": "Alex Morgan",
+          "relationship": "Spouse",
+          "mobile": "9876543299",
+          "is_primary": true
+        }
+      ],
+      "qr_codes": [ ... ]
+    }
+  }
+  ```
+
+---
+
+## 6. Public Tag Scan & Emergency Registration
 
 ### `GET /scan/:token`
 Public endpoint queried by smartphones scanning a physical Vyra Smart Tag.
@@ -268,7 +493,7 @@ Self-service customer activation for unassigned tags.
 
 ---
 
-## 6. Exotel 2-Way Number Masking Gateway
+## 7. Exotel 2-Way Number Masking Gateway
 
 Connects scanner and owner over an encrypted virtual PSTN proxy bridge so that **neither party's actual phone number is revealed**.
 
@@ -332,7 +557,7 @@ Initiates a 2-way masked call bridge.
 
 ---
 
-## 7. Store Orders & Contact Notification Webhooks
+## 8. Store Orders & Contact Notification Webhooks
 
 ### `POST /api/order`
 Submits ₹399 hardware kit purchases, writes order records to `data/orders.json`, and dispatches an HTML notification receipt to `vyraconnect.in@gmail.com` via authenticated Google SMTP.

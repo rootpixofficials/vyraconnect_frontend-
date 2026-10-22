@@ -122,6 +122,67 @@ When the OTP is correct, but the mobile number is NOT associated with any existi
 
 ---
 
+### `POST /api/auth/register` (or `POST /api/register`)
+Direct self-service customer registration and account creation.
+- Gracefully handles **already registered customers** by updating their profile and issuing an active session JWT token without unique constraint failures.
+- If vehicle details or an unassigned QR token are supplied, automatically links and activates them.
+
+- **Request Body**:
+  ```json
+  {
+    "name": "Mohammed Nihal",
+    "mobile": "9746910890",
+    "email": "nihal@example.com",
+    "address": "Floor 4, Cyberpark",
+    "city": "Calicut",
+    "state": "Kerala",
+    "pincode": "673016",
+    "vehicleType": "Four Wheeler",
+    "registrationNumber": "KL 10 AV 4099",
+    "make": "BMW",
+    "model": "M340i",
+    "color": "Portimao Blue",
+    "emergencyName": "Emergency Desk",
+    "emergencyMobile": "9876543211",
+    "emergencyRelationship": "Brother",
+    "token": "optional_qr_token"
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "message": "Account registered and activated successfully",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "213de586-4cf3-4696-a5e9-ee4889539907",
+      "userId": "213de586-4cf3-4696-a5e9-ee4889539907",
+      "customer_code": "CUST-598574",
+      "name": "Mohammed Nihal",
+      "full_name": "Mohammed Nihal",
+      "mobile": "9746910890",
+      "phone": "9746910890",
+      "email": "nihal@example.com",
+      "status": "ACTIVE",
+      "otp_verified": true,
+      "vehicles": [ ... ],
+      "emergency_contacts": [ ... ],
+      "qr_codes": [ ... ]
+    },
+    "customer": { ... same ... }
+  }
+  ```
+
+---
+
+### `POST /api/auth/login` (or `POST /api/login`)
+Universal flexible login endpoint:
+- **With OTP**: Pass `{ "mobile": "9746910890", "otp": "1234" }` to verify OTP and obtain session JWT token.
+- **Without OTP**: Pass `{ "mobile": "9746910890" }` to dispatch a new one-time password.
+- **With Credentials**: Pass `{ "username": "admin", "password": "..." }` for administrator login.
+
+---
+
 ### `POST /api/admin/login`
 Authenticates administrative personnel and generates access session.
 
@@ -306,7 +367,82 @@ Removes a vehicle from the customer's scanner profile.
 
 ---
 
-## 5. Customer Profile Management (View & Edit)
+## 5. User & Customer Profile Management (View & Edit)
+
+### `GET /api/user/:userId` (or `GET /api/user`, `GET /api/users/:userId`, `GET /api/customer/:id`)
+**Dedicated User Get by UserId API Endpoint.**
+Retrieves user account and vehicle profile by their unique identifier.
+
+- **Supported Identifier Parameters**:
+  - **Path Parameter**: `/:userId` or `/:id` (e.g. `213de586-4cf3-4696-a5e9-ee4889539907` or `CUST-598574` or `9746910890`)
+  - **Query Parameter**: `?userId=...` or `?id=...` or `?mobile=...`
+  - **Authorization Header**: `Bearer <JWT_TOKEN>` (automatically extracts user ID from decoded session token)
+- **Automatic Matching Strategy**:
+  1. Searches `Customer` table by UUID `id`
+  2. Searches `Customer` table by `customer_code` (e.g. `CUST-598574`)
+  3. Searches `Customer` table by `mobile` (matching normalized or country code variants)
+  4. Searches administrative `User` table by `id` or `username`
+- **Response `200 OK`**:
+  ```json
+  {
+    "success": true,
+    "user": {
+      "id": "213de586-4cf3-4696-a5e9-ee4889539907",
+      "userId": "213de586-4cf3-4696-a5e9-ee4889539907",
+      "customer_code": "CUST-598574",
+      "full_name": "Mohammed Nihal",
+      "name": "Mohammed Nihal",
+      "mobile": "9746910890",
+      "phone": "9746910890",
+      "email": "nihal@example.com",
+      "profile_image": null,
+      "address": "Floor 4, Cyberpark",
+      "city": "Calicut",
+      "state": "Kerala",
+      "pincode": "673016",
+      "status": "ACTIVE",
+      "otp_verified": true,
+      "vehicles": [
+        {
+          "id": "v1-uuid",
+          "vehicle_type": "Four Wheeler",
+          "registration_number": "KL 10 AV 4099",
+          "make": "BMW",
+          "model": "M340i",
+          "variant": "xDrive",
+          "color": "Portimao Blue",
+          "status": "ACTIVE",
+          "created_at": "2026-10-20T10:15:20.100Z"
+        }
+      ],
+      "emergency_contacts": [
+        {
+          "id": "e1-uuid",
+          "name": "Emergency Desk",
+          "relationship": "Brother",
+          "mobile": "9876543211",
+          "is_primary": true,
+          "status": "ACTIVE"
+        }
+      ],
+      "qr_codes": [
+        {
+          "id": "qr-uuid",
+          "qr_serial": "V-000010",
+          "qr_token": "2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "qr_url": "https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=2f36045d6d33e087d90ec2c31af81ff8c082624f41bc87c05703bb07fd8d068c",
+          "status": "ACTIVE",
+          "activated_at": "2026-10-08T21:07:53.805Z",
+          "expires_at": "2036-10-08T21:07:53.805Z"
+        }
+      ]
+    },
+    "customer": { ... same ... },
+    "data": { ... same ... }
+  }
+  ```
+
+---
 
 ### `GET /api/customer/profile` or `GET /api/customer/profile/:id`
 Retrieves a customer's detailed profile including all registered vehicles, emergency contacts, and active QR scanner tags.

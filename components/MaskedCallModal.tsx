@@ -155,9 +155,16 @@ export default function MaskedCallModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <div>{error}</div>
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs space-y-2">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="font-medium leading-relaxed">{error}</div>
+            </div>
+            {error.includes("ExoPhone") && (
+              <div className="pt-2 border-t border-amber-500/20 text-[11px] text-gray-300">
+                Log in to <strong className="text-white">my.exotel.com</strong> &gt; copy your assigned virtual number &gt; provide it to update <code className="text-cyan-300 bg-black/40 px-1.5 py-0.5 rounded">EXOTEL_CALLER_ID</code>.
+              </div>
+            )}
           </div>
         )}
 

@@ -108,6 +108,18 @@ export async function initiateMaskedCall({
       };
     }
 
+    // Handle missing / invalid CallerId (ExoPhone not attached or placeholder)
+    if (data?.RestException?.Message?.includes("CallerId")) {
+      return {
+        success: false,
+        callerId: formattedCallerId,
+        scannerMasked: maskDisplayNumber(scannerNumber),
+        ownerMasked: maskDisplayNumber(ownerNumber),
+        message: "Your Exotel KYC verification is completed! To place live calls, please link your active ExoPhone (Virtual Number) from your Exotel Dashboard to EXOTEL_CALLER_ID.",
+        raw: data
+      };
+    }
+
     // Handle KYC Pending status returned by Exotel
     if (data?.RestException?.Message?.includes("KYC")) {
       return {

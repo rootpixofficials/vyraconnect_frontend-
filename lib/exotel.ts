@@ -51,7 +51,7 @@ export function maskDisplayNumber(phone: string): string {
 export async function initiateMaskedCall({
   scannerNumber,
   ownerNumber = process.env.DEFAULT_OWNER_NUMBER || "+919746910890",
-  callerId = process.env.EXOTEL_CALLER_ID || "08047190000",
+  callerId = process.env.EXOTEL_CALLER_ID || "09513886363",
   customField = "vyra-qr-scan"
 }: InitiateMaskedCallParams): Promise<ExotelCallResult> {
   const accountSid = process.env.EXOTEL_ACCOUNT_SID;
@@ -134,10 +134,18 @@ export async function initiateMaskedCall({
     }
 
     // Handle negative credits / balance
-    if (data?.RestException?.Message?.includes("credit") || data?.RestException?.Message?.includes("balance")) {
+    const errMsg = data?.RestException?.Message || "";
+    if (
+      errMsg.toLowerCase().includes("credit") ||
+      errMsg.toLowerCase().includes("balance") ||
+      errMsg.toLowerCase().includes("recharge")
+    ) {
       return {
         success: false,
-        message: "Exotel account has insufficient credits. Please add trial credits to make live calls.",
+        callerId: formattedCallerId,
+        scannerMasked: maskDisplayNumber(scannerNumber),
+        ownerMasked: maskDisplayNumber(ownerNumber),
+        message: "Your Exotel account balance is negative (-256 Credits). Please recharge credits in Exotel under 'PAYMENT AND BILLS > Make a Payment' to activate outgoing calls.",
         raw: data
       };
     }

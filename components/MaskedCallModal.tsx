@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { 
   PhoneCall, Shield, Lock, X, CheckCircle2, AlertCircle, 
-  Smartphone, ArrowRight, ShieldCheck, PhoneOff, Radio
+  Smartphone, ArrowRight, ShieldCheck, PhoneOff, Radio, MessageSquare, ExternalLink
 } from "lucide-react";
 
 interface MaskedCallModalProps {
@@ -155,11 +155,40 @@ export default function MaskedCallModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs space-y-2">
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="font-medium leading-relaxed">{error}</div>
             </div>
+
+            {error.includes("Credit") || error.includes("balance") || error.includes("recharge") ? (
+              <div className="pt-2 border-t border-amber-500/20 space-y-2">
+                <p className="text-[11px] text-gray-300">
+                  Exotel requires positive balance to route PSTN calls. While you top up Exotel, you can reach the owner instantly:
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <a
+                    href={`https://wa.me/919746910890?text=${encodeURIComponent(
+                      `Hello! I am scanning the QR code for vehicle ${plateNumber}. Please contact me.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-300 flex items-center justify-center gap-1.5 text-[11px] font-bold transition"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    WhatsApp Owner
+                  </a>
+                  <a
+                    href="tel:+919746910890"
+                    className="flex-1 py-2 px-3 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-300 flex items-center justify-center gap-1.5 text-[11px] font-bold transition"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5" />
+                    Direct Phone Call
+                  </a>
+                </div>
+              </div>
+            ) : null}
+
             {error.includes("ExoPhone") && (
               <div className="pt-2 border-t border-amber-500/20 text-[11px] text-gray-300">
                 Log in to <strong className="text-white">my.exotel.com</strong> &gt; copy your assigned virtual number &gt; provide it to update <code className="text-cyan-300 bg-black/40 px-1.5 py-0.5 rounded">EXOTEL_CALLER_ID</code>.

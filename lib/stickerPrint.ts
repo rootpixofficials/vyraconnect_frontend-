@@ -40,7 +40,7 @@ export const printQrStickers = (qrs: PrintableQR[], title = 'Vyra Connect QR Sti
         <div class="serial-badge">${qr.qr_serial}</div>
         <div class="scan-instruction">Scan with any smartphone camera in an emergency</div>
         ${qr.customerName ? `<div class="customer-tag">👤 Linked: ${qr.customerName}</div>` : ''}
-        <div class="platform-url">phpstack-1650272-6724559.cloudwaysapps.com • Smart Vehicle Protection</div>
+        <div class="platform-url">vyraconnect.in • Smart Vehicle Protection</div>
       </div>
     </div>
   `).join('');

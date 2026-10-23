@@ -92,10 +92,10 @@ export default function ScanQR() {
 
             <div className="text-center space-y-2 mb-6">
               <div className="text-xs text-gray-300 font-medium tracking-wider uppercase">
-                Scan with your phone camera to navigate directly to test link:
+                Scan with your phone camera to navigate directly:
               </div>
               <div className="text-[11px] font-mono text-cyan-300/90 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1.5 rounded-xl inline-block max-w-full break-all">
-                https://phpstack-1650272-6724559.cloudwaysapps.com/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d
+                https://vyraconnect.in/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d
               </div>
             </div>
 
@@ -106,7 +106,7 @@ export default function ScanQR() {
                 className="w-full bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 rounded-xl py-3 px-4 font-bold text-sm flex items-center justify-center gap-2 transition"
               >
                 <QrCode className="w-4 h-4 text-cyan-400" />
-                Open Test Tag Screen Directly on this Device
+                Open Tag Screen Directly on this Device
               </Link>
 
               <button

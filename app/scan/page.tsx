@@ -48,15 +48,8 @@ function ScanPageContent() {
   useEffect(() => {
     const fetchQRStatus = async () => {
       try {
-        // Try backend test API first, fallback to live API domain
-        let resData = null;
-        try {
-          const response = await axios.get(`https://phpstack-1650272-6714822.cloudwaysapps.com/api/scan/${resolvedToken}`);
-          resData = response.data?.qr;
-        } catch {
-          const response = await axios.get(`https://api.vyraconnect.in/api/scan/${resolvedToken}`);
-          resData = response.data?.qr;
-        }
+        const response = await axios.get(`https://api.vyraconnect.in/api/scan/${resolvedToken}`);
+        const resData = response.data?.qr;
 
         if (resData) {
           setQrData(resData);

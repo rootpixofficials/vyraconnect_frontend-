@@ -1,45 +1,44 @@
 /**
  * Vyra Connect Application Configuration
- * Handles environment-aware URL resolution so scanners and QR codes
- * always navigate to the public test domain (never localhost or production live domain during testing).
+ * Handles environment-aware URL resolution so scanners, QR codes, and redirects
+ * point to the live production domain (https://vyraconnect.in).
  */
 
-export const TEST_APP_URL = "https://phpstack-1650272-6724559.cloudwaysapps.com";
 export const LIVE_APP_URL = "https://vyraconnect.in";
+export const TEST_APP_URL = "https://phpstack-1650272-6724559.cloudwaysapps.com";
 
 // Active verified vehicle token from database (no dummy concepts)
 export const ACTIVE_TEST_TOKEN = "ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d";
 
-// Full active test scan URL that mobile camera scanners navigate to
-export const ACTIVE_TEST_SCAN_URL = `${TEST_APP_URL}/scan?token=${ACTIVE_TEST_TOKEN}`;
+// Full active scan URL that mobile camera scanners navigate to
+export const ACTIVE_SCAN_URL = `${LIVE_APP_URL}/scan?token=${ACTIVE_TEST_TOKEN}`;
+export const ACTIVE_TEST_SCAN_URL = ACTIVE_SCAN_URL;
 
 /**
- * Returns the active public test base URL of the application.
- * Never returns localhost so mobile camera scans always open on external devices.
+ * Returns the active base URL of the application.
+ * Default is the live production domain (https://vyraconnect.in).
  */
 export function getAppBaseUrl(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
     const origin = window.location.origin;
-    // Disallow localhost and production live domain during test mode
-    if (!origin.includes("localhost") && !origin.includes("127.0.0.1") && !origin.includes("vyraconnect.in")) {
+    if (!origin.includes("localhost") && !origin.includes("127.0.0.1")) {
       return origin;
     }
   }
-  return TEST_APP_URL;
+  return LIVE_APP_URL;
 }
 
 /**
- * Rewrites any live production vyraconnect.in scan URL to the test environment URL
- * (e.g. https://vyraconnect.in/scan?token=xyz -> https://phpstack.../scan?token=xyz)
+ * Rewrites any scan or test URL to the live production domain https://vyraconnect.in.
  */
 export function rewriteToCurrentDomain(url?: string): string {
-  const currentBase = TEST_APP_URL;
+  const currentBase = LIVE_APP_URL;
   if (!url) {
-    return ACTIVE_TEST_SCAN_URL;
+    return ACTIVE_SCAN_URL;
   }
   return url
-    .replace("https://www.vyraconnect.in", currentBase)
-    .replace("http://www.vyraconnect.in", currentBase)
-    .replace("https://vyraconnect.in", currentBase)
-    .replace("http://vyraconnect.in", currentBase);
+    .replace(/https?:\/\/phpstack-1650272-6724559\.cloudwaysapps\.com/g, currentBase)
+    .replace(/https?:\/\/phpstack-1650272-6714822\.cloudwaysapps\.com/g, currentBase)
+    .replace(/https?:\/\/www\.vyraconnect\.in/g, currentBase)
+    .replace(/http:\/\/vyraconnect\.in/g, currentBase);
 }

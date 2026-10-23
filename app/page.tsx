@@ -20,6 +20,7 @@ export default function Home() {
   // State for interactive simulation
   const [activeTab, setActiveTab] = useState<"alert" | "chat" | "lost">("alert");
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [heroVisual, setHeroVisual] = useState<"car" | "scanner">("car");
 
   return (
     <main className="relative overflow-hidden selection:bg-cyan-500 selection:text-black">
@@ -105,148 +106,291 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          {/* Right Column: Mandatory iPhone 18 Pro Scanning Mockup (Shifted Rightward) */}
-          <div className="lg:col-span-5 xl:col-span-6 relative mt-10 lg:mt-0 flex justify-center lg:justify-end items-center">
-            <FadeIn direction="left" delay={0.2} className="relative flex justify-center lg:justify-end w-full max-w-[340px] ml-auto lg:translate-x-8 xl:translate-x-14">
-              
-              {/* Ambient Glow behind Phone */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />
+          {/* Right Column: Premium Stealth Hypercar + Interactive iPhone 18 Pro Scanner */}
+          <div className="lg:col-span-5 xl:col-span-6 relative mt-10 lg:mt-0 flex flex-col items-center lg:items-end justify-center w-full">
+            
+            {/* View Mode Switcher Pills */}
+            <div className="flex items-center gap-2 mb-4 self-center lg:self-end z-20">
+              <button
+                type="button"
+                onClick={() => setHeroVisual("car")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-bold transition-all ${
+                  heroVisual === "car"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                    : "bg-black/60 border border-white/10 text-gray-400 hover:text-white"
+                }`}
+              >
+                <Car className="w-3.5 h-3.5" />
+                Stealth Vehicle View
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroVisual("scanner")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-bold transition-all ${
+                  heroVisual === "scanner"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                    : "bg-black/60 border border-white/10 text-gray-400 hover:text-white"
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                Live Scanner View
+              </button>
+            </div>
 
-              {/* iPhone 18 Pro Frame */}
-              <div className="relative w-[310px] sm:w-[335px] h-[640px] sm:h-[660px] bg-[#070b12] rounded-[3.5rem] border-[10px] sm:border-[12px] border-[#1a1f2c] shadow-[0_25px_80px_rgba(6,182,212,0.3),0_0_50px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col ring-1 ring-white/15">
+            {heroVisual === "car" ? (
+              /* VIEW 1: STEALTH HYPERCAR SHOWCASE (MATCHING SECTION 2) */
+              <FadeIn direction="left" delay={0.2} className="relative w-full max-w-[640px]">
                 
-                {/* Dynamic Island */}
-                <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-30 flex items-center justify-between px-3 shadow-inner">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#101b2b] border border-blue-900/60" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[9px] font-mono font-bold text-cyan-300">SCAN</span>
-                  </div>
-                </div>
+                {/* Ambient Glow behind Hypercar */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[360px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-                {/* Speaker Ear-piece Line */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/10 rounded-full z-30" />
-
-                {/* Phone Screen Inner Container */}
-                <div className="flex-1 bg-gradient-to-b from-[#060c18] via-[#040812] to-black relative flex flex-col pt-14 px-5 pb-6 overflow-hidden">
+                {/* Hypercar Frame */}
+                <div className="relative rounded-3xl overflow-hidden border border-cyan-500/35 shadow-[0_25px_90px_rgba(6,182,212,0.25)] group bg-[#020617]">
                   
-                  {/* Status Bar */}
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono px-2 mb-4">
-                    <span>9:41</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] tracking-wider text-cyan-400 font-bold">VYRA 5G</span>
-                      <div className="w-5 h-2.5 border border-gray-400 rounded-sm p-0.5 flex items-center">
-                        <div className="w-full h-full bg-white rounded-2xs" />
-                      </div>
-                    </div>
-                  </div>
+                  {/* Aspect Ratio Container for Image */}
+                  <div className="relative aspect-[16/10] w-full">
+                    <Image
+                      src="/images/hero-luxury-car.webp"
+                      alt="Vyra Connect Stealth Black Hypercar with Glowing Cyan Headlights"
+                      fill
+                      priority
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
 
-                  {/* Header in Camera App */}
-                  <div className="text-center mb-3">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-[10px] font-mono uppercase tracking-wider mb-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-                      Camera Viewfinder
-                    </div>
-                    <h3 className="text-white text-base font-bold font-heading">Scan Vehicle Tag</h3>
-                    <p className="text-gray-400 text-xs">Align the QR code within the frame</p>
-                  </div>
-
-                  {/* Viewfinder Frame with animated laser scan line */}
-                  <div className="relative aspect-square w-full rounded-2xl border border-cyan-500/40 bg-black/60 p-4 flex items-center justify-center shadow-[0_0_35px_rgba(6,182,212,0.15)] overflow-hidden">
-                    
-                    {/* Corner Targeting Brackets */}
-                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-sm" />
-                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-sm" />
-                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-sm" />
-                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-sm" />
-
-                    {/* Animated Scanning Laser Line */}
+                    {/* Laser Scanning Line Effect */}
                     <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_3px_#06b6d4] animate-scan-line z-20 pointer-events-none" />
 
-                    {/* Virtual Vyra Tag Inside Frame */}
-                    <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-[#0b1322] to-[#040812] border border-cyan-400/30 p-2.5 flex flex-col items-center justify-between shadow-inner">
-                      <div className="flex items-center justify-between w-full px-1">
-                        <div className="relative w-16 h-4">
-                          <Image src="/vyra-logo-navbar.png" alt="Vyra" fill className="object-contain object-left" />
-                        </div>
-                        <span className="text-[8px] font-mono text-cyan-400 font-bold">SMART TAG</span>
-                      </div>
-                      
-                      <Link 
-                        href="/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d"
-                        className="p-2 bg-white rounded-lg shadow-md my-0.5 hover:scale-105 active:scale-95 transition cursor-pointer block"
-                        title="Scan with phone camera or tap to open test link"
-                      >
-                        <DummyQR className="w-20 h-20 p-0" />
-                      </Link>
+                    {/* Gradient Vignette */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-65" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/40 via-transparent to-transparent" />
 
-                      <div className="flex items-center justify-between w-full text-[8px] font-mono text-gray-400 px-1">
-                        <span>ID: VYRA-001234</span>
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> ACTIVE
+                    {/* Interactive Windshield Smart Tag Radar Pin */}
+                    <div className="absolute top-[42%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+                      <div className="relative flex items-center justify-center group/pin cursor-pointer" onClick={() => setHeroVisual("scanner")}>
+                        <span className="absolute w-9 h-9 rounded-full bg-cyan-400/30 animate-ping" />
+                        <span className="relative w-4 h-4 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center text-black font-extrabold text-[9px] shadow-[0_0_15px_#06b6d4] border border-white">
+                          ●
                         </span>
+                        
+                        {/* Tooltip on pin */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/90 backdrop-blur-md px-3 py-1 rounded-full border border-cyan-400 text-[10px] font-mono text-cyan-300 shadow-xl opacity-90 group-hover/pin:opacity-100 transition">
+                          ⚡ VYRA SMART TAG • TAP TO SCAN
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Scanned Result Card */}
-                  <div className="mt-3 bg-gradient-to-r from-cyan-950/40 via-black/80 to-blue-950/40 border border-cyan-500/40 rounded-xl p-3 shadow-lg">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-xs font-bold text-white">Vehicle Identified</span>
+                    {/* Top Floating Telematics Badges */}
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+                      <div className="flex items-center gap-2 bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-500/40 text-xs font-mono text-cyan-300 shadow-lg">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        SENTRY PRIVACY SHIELD: ACTIVE
                       </div>
-                      <span className="text-[10px] font-mono text-cyan-400 font-bold">0.38s</span>
-                    </div>
-                    <div className="text-[11px] text-gray-300 flex items-center justify-between">
-                      <span>Porsche Taycan 4S</span>
-                      <span className="text-[10px] font-mono text-gray-400">KL-11-AZ-7777</span>
+                      <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono font-bold text-gray-300 bg-black/80 px-3 py-1.5 rounded-full border border-white/10">
+                        <PhoneOff className="w-3 h-3 text-cyan-400" />
+                        NUMBER 100% MASKED
+                      </div>
                     </div>
 
-                    {/* Quick Masked Actions */}
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <button 
+                    {/* Bottom Telematics Bar */}
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-20">
+                      <div className="bg-black/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-mono text-gray-200">
+                        <span className="text-cyan-400 font-bold">RIMAC NEVERA</span> • KL 11 AZ 7777
+                      </div>
+                      <button
                         type="button"
-                        onClick={() => setIsCallModalOpen(true)}
-                        className="bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-md hover:opacity-90 active:scale-95 transition"
+                        onClick={() => setHeroVisual("scanner")}
+                        className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black px-4 py-1.5 rounded-full text-xs font-bold font-mono transition shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                       >
-                        <PhoneOff className="w-3 h-3 text-black" /> Masked Call
+                        <Smartphone className="w-3.5 h-3.5 text-black" />
+                        <span>Simulate Phone Scan</span>
+                        <ArrowRight className="w-3 h-3 text-black" />
                       </button>
-                      <button className="bg-white/10 hover:bg-white/15 text-white font-bold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 border border-white/10">
-                        <MessageSquare className="w-3 h-3 text-cyan-400" /> Send Alert
-                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Floating Scanner Preview Callout (Bottom-Left) */}
+                <div 
+                  onClick={() => setHeroVisual("scanner")}
+                  className="hidden md:flex absolute -bottom-6 -left-6 bg-black/90 backdrop-blur-xl border border-cyan-400/40 p-3 rounded-2xl shadow-2xl items-center gap-3 z-30 cursor-pointer hover:border-cyan-300 hover:scale-105 transition-all group/callout"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover/callout:bg-cyan-500 group-hover/callout:text-black transition">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-mono">Interactive Viewfinder</div>
+                    <div className="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                      <span>Click for iPhone 18 Pro View</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hidden sm:flex absolute -top-4 -right-4 bg-black/90 backdrop-blur-xl border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-mono">Encrypted Relay Speed</div>
+                    <div className="text-xs font-bold text-emerald-400">&lt; 0.38s Instant Alert</div>
+                  </div>
+                </div>
+
+              </FadeIn>
+            ) : (
+              /* VIEW 2: IPHONE 18 PRO SCANNER VIEW */
+              <FadeIn direction="left" delay={0.2} className="relative flex flex-col justify-center lg:justify-end w-full max-w-[340px] ml-auto lg:translate-x-8 xl:translate-x-14">
+                
+                {/* Ambient Glow behind Phone */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[580px] bg-gradient-to-tr from-cyan-500/25 to-blue-600/20 blur-[90px] rounded-full pointer-events-none -z-10" />
+
+                {/* iPhone 18 Pro Frame */}
+                <div className="relative w-[310px] sm:w-[335px] h-[640px] sm:h-[660px] bg-[#070b12] rounded-[3.5rem] border-[10px] sm:border-[12px] border-[#1a1f2c] shadow-[0_25px_80px_rgba(6,182,212,0.3),0_0_50px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col ring-1 ring-white/15">
+                  
+                  {/* Dynamic Island */}
+                  <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-30 flex items-center justify-between px-3 shadow-inner">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#101b2b] border border-blue-900/60" />
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[9px] font-mono font-bold text-cyan-300">SCAN</span>
                     </div>
                   </div>
 
-                  {/* Home Indicator */}
-                  <div className="mt-auto pt-2">
-                    <div className="w-28 h-1 bg-white/30 rounded-full mx-auto" />
+                  {/* Speaker Ear-piece Line */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/10 rounded-full z-30" />
+
+                  {/* Phone Screen Inner Container */}
+                  <div className="flex-1 bg-gradient-to-b from-[#060c18] via-[#040812] to-black relative flex flex-col pt-14 px-5 pb-6 overflow-hidden">
+                    
+                    {/* Status Bar */}
+                    <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono px-2 mb-4">
+                      <span>9:41</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] tracking-wider text-cyan-400 font-bold">VYRA 5G</span>
+                        <div className="w-5 h-2.5 border border-gray-400 rounded-sm p-0.5 flex items-center">
+                          <div className="w-full h-full bg-white rounded-2xs" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Header in Camera App */}
+                    <div className="text-center mb-3">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-[10px] font-mono uppercase tracking-wider mb-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                        Camera Viewfinder
+                      </div>
+                      <h3 className="text-white text-base font-bold font-heading">Scan Vehicle Tag</h3>
+                      <p className="text-gray-400 text-xs">Align the QR code within the frame</p>
+                    </div>
+
+                    {/* Viewfinder Frame with animated laser scan line */}
+                    <div className="relative aspect-square w-full rounded-2xl border border-cyan-500/40 bg-black/60 p-4 flex items-center justify-center shadow-[0_0_35px_rgba(6,182,212,0.15)] overflow-hidden">
+                      
+                      {/* Corner Targeting Brackets */}
+                      <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-sm" />
+                      <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-sm" />
+                      <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-sm" />
+                      <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-sm" />
+
+                      {/* Animated Scanning Laser Line */}
+                      <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_3px_#06b6d4] animate-scan-line z-20 pointer-events-none" />
+
+                      {/* Virtual Vyra Tag Inside Frame */}
+                      <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-[#0b1322] to-[#040812] border border-cyan-400/30 p-2.5 flex flex-col items-center justify-between shadow-inner">
+                        <div className="flex items-center justify-between w-full px-1">
+                          <div className="relative w-16 h-4">
+                            <Image src="/vyra-logo-navbar.png" alt="Vyra" fill className="object-contain object-left" />
+                          </div>
+                          <span className="text-[8px] font-mono text-cyan-400 font-bold">SMART TAG</span>
+                        </div>
+                        
+                        <Link 
+                          href="/scan?token=ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d"
+                          className="p-2 bg-white rounded-lg shadow-md my-0.5 hover:scale-105 active:scale-95 transition cursor-pointer block"
+                          title="Scan with phone camera or tap to open test link"
+                        >
+                          <DummyQR className="w-20 h-20 p-0" />
+                        </Link>
+
+                        <div className="flex items-center justify-between w-full text-[8px] font-mono text-gray-400 px-1">
+                          <span>ID: VYRA-001234</span>
+                          <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> ACTIVE
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Scanned Result Card */}
+                    <div className="mt-3 bg-gradient-to-r from-cyan-950/40 via-black/80 to-blue-950/40 border border-cyan-500/40 rounded-xl p-3 shadow-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-xs font-bold text-white">Vehicle Identified</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-cyan-400 font-bold">0.38s</span>
+                      </div>
+                      <div className="text-[11px] text-gray-300 flex items-center justify-between">
+                        <span>Porsche Taycan 4S</span>
+                        <span className="text-[10px] font-mono text-gray-400">KL-11-AZ-7777</span>
+                      </div>
+
+                      {/* Quick Masked Actions */}
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <button 
+                          type="button"
+                          onClick={() => setIsCallModalOpen(true)}
+                          className="bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-md hover:opacity-90 active:scale-95 transition"
+                        >
+                          <PhoneOff className="w-3 h-3 text-black" /> Masked Call
+                        </button>
+                        <button className="bg-white/10 hover:bg-white/15 text-white font-bold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1 border border-white/10">
+                          <MessageSquare className="w-3 h-3 text-cyan-400" /> Send Alert
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Home Indicator */}
+                    <div className="mt-auto pt-2">
+                      <div className="w-28 h-1 bg-white/30 rounded-full mx-auto" />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Floating Badges Outside Phone */}
-              <div className="hidden sm:flex absolute -top-4 -right-6 bg-black/90 backdrop-blur-xl border border-cyan-400/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
-                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                  <Zap className="w-4 h-4" />
+                {/* Floating Badges Outside Phone */}
+                <div className="hidden sm:flex absolute -top-4 -right-6 bg-black/90 backdrop-blur-xl border border-cyan-400/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
+                  <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-mono">Scan Latency</div>
+                    <div className="text-xs font-bold text-cyan-300">Instant &lt;0.4s</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-gray-400 font-mono">Scan Latency</div>
-                  <div className="text-xs font-bold text-cyan-300">Instant &lt;0.4s</div>
-                </div>
-              </div>
 
-              <div className="hidden sm:flex absolute -bottom-4 -left-6 bg-black/90 backdrop-blur-xl border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="hidden sm:flex absolute -bottom-4 -left-6 bg-black/90 backdrop-blur-xl border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-xl items-center gap-2.5 z-20">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-mono">Privacy Shield</div>
+                    <div className="text-xs font-bold text-emerald-400">Number 100% Hidden</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-gray-400 font-mono">Privacy Shield</div>
-                  <div className="text-xs font-bold text-emerald-400">Number 100% Hidden</div>
-                </div>
-              </div>
 
-            </FadeIn>
+                {/* Switch back button */}
+                <button
+                  type="button"
+                  onClick={() => setHeroVisual("car")}
+                  className="mt-4 text-xs font-mono text-cyan-400 hover:text-white flex items-center justify-center gap-1.5 transition"
+                >
+                  <Car className="w-3.5 h-3.5" />
+                  <span>Switch back to Stealth Vehicle View</span>
+                </button>
+
+              </FadeIn>
+            )}
           </div>
 
         </div>

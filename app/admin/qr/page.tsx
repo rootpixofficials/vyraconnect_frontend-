@@ -95,8 +95,13 @@ export default function QRManagementPage() {
         axios.get('https://api.vyraconnect.in/api/admin/vehicles').catch(() => ({ data: [] }))
       ]);
 
+      const rawBatches = batchRes.data?.batches || (Array.isArray(batchRes.data) ? batchRes.data : []);
+      const sortedBatches = [...rawBatches].sort((a: Batch, b: Batch) => {
+        return (a.batch_code || '').localeCompare(b.batch_code || '', undefined, { numeric: true, sensitivity: 'base' });
+      });
+
       setQrs(qrRes.data?.qrs || qrRes.data?.data || (Array.isArray(qrRes.data) ? qrRes.data : []));
-      setBatches(batchRes.data?.batches || (Array.isArray(batchRes.data) ? batchRes.data : []));
+      setBatches(sortedBatches);
       setCustomers(custRes.data?.customers || custRes.data?.data || (Array.isArray(custRes.data) ? custRes.data : []));
       setVehicles(Array.isArray(vehRes.data) ? vehRes.data : vehRes.data?.vehicles || []);
       setError(null);
@@ -294,8 +299,16 @@ export default function QRManagementPage() {
     printQrStickers(selectedQrs, `Vyra Bulk Stickers (${selectedQrs.length})`);
   };
 
+  // Natural ascending sort comparator for QR serials (e.g. V-000001, V-000002, etc.)
+  const sortBySerialAsc = (a: QRCode, b: QRCode) => {
+    return (a.qr_serial || '').localeCompare(b.qr_serial || '', undefined, { numeric: true, sensitivity: 'base' });
+  };
+
   const handlePrintBatch = (batchId: string) => {
-    const batchQrs = qrs.filter(q => q.batch_id === batchId).map(enrichQr);
+    const batchQrs = qrs
+      .filter(q => q.batch_id === batchId)
+      .sort(sortBySerialAsc)
+      .map(enrichQr);
     if (batchQrs.length === 0) {
       alert('No QR codes found in this batch.');
       return;
@@ -318,7 +331,8 @@ export default function QRManagementPage() {
       alert('No data to export.');
       return;
     }
-    const rows = qrsToExport.map(q => {
+    const sortedQrs = [...qrsToExport].sort(sortBySerialAsc);
+    const rows = sortedQrs.map(q => {
       const c = customers.find(cust => cust.id === q.customer_id);
       const b = batches.find(batch => batch.id === q.batch_id);
       return {
@@ -356,27 +370,31 @@ export default function QRManagementPage() {
     }
   };
 
-  // Filtered QRs based on Selected Batch, Search, and Status
-  const filteredQrs = qrs.filter(q => {
-    const matchesBatch = selectedBatchId === 'ALL' || q.batch_id === selectedBatchId;
+  // Filtered QRs based on Selected Batch, Search, and Status (Strictly sorted in Ascending Order)
+  const filteredQrs = qrs
+    .filter(q => {
+      const matchesBatch = selectedBatchId === 'ALL' || q.batch_id === selectedBatchId;
 
-    const c = customers.find(cust => cust.id === q.customer_id);
-    const matchesSearch =
-      q.qr_serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (q.customer_id && q.customer_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c && ((c.full_name || c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.mobile || '').includes(searchTerm)));
+      const c = customers.find(cust => cust.id === q.customer_id);
+      const matchesSearch =
+        q.qr_serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (q.customer_id && q.customer_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (c && ((c.full_name || c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.mobile || '').includes(searchTerm)));
 
-    const matchesStatus =
-      statusFilter === 'ALL' ||
-      (statusFilter === 'ACTIVE' && (q.status === 'ACTIVE' || q.status === 'ACTIVATED')) ||
-      (statusFilter === 'AVAILABLE' && q.status === 'AVAILABLE') ||
-      (statusFilter === 'BLOCKED' && q.status === 'BLOCKED');
+      const matchesStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' && (q.status === 'ACTIVE' || q.status === 'ACTIVATED')) ||
+        (statusFilter === 'AVAILABLE' && q.status === 'AVAILABLE') ||
+        (statusFilter === 'BLOCKED' && q.status === 'BLOCKED');
 
-    return matchesBatch && matchesSearch && matchesStatus;
-  });
+      return matchesBatch && matchesSearch && matchesStatus;
+    })
+    .sort(sortBySerialAsc);
 
   const activeBatchObj = batches.find(b => b.id === selectedBatchId);
-  const activeBatchQrs = selectedBatchId === 'ALL' ? [] : qrs.filter(q => q.batch_id === selectedBatchId);
+  const activeBatchQrs = selectedBatchId === 'ALL' 
+    ? [] 
+    : qrs.filter(q => q.batch_id === selectedBatchId).sort(sortBySerialAsc);
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-20">

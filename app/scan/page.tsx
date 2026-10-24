@@ -337,6 +337,8 @@ function ScanPageContent() {
         isOpen={isCallModalOpen}
         onClose={() => setIsCallModalOpen(false)}
         plateNumber={regNo}
+        ownerNumber={qrData?.customer?.mobile}
+        ownerMasked={qrData?.customer?.mobile ? `+91 ••••• ••${qrData.customer.mobile.slice(-3)}` : undefined}
         qrToken={token || undefined}
       />
     </div>

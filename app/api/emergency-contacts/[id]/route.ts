@@ -4,10 +4,11 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.vyraconnect.
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${params.id}`, {
+    const { id } = await params;
+    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${id}`, {
       cache: 'no-store'
     });
     const data = await res.json();
@@ -22,11 +23,12 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
-    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${params.id}`, {
+    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -43,10 +45,11 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${params.id}`, {
+    const { id } = await params;
+    const res = await fetch(`${BACKEND_URL}/api/emergency-contacts/${id}`, {
       method: 'DELETE'
     });
     const data = await res.json();

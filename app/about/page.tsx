@@ -1,56 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Smartphone, ShoppingCart } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
+import { ShieldCheck, MapPin, ArrowRight } from "lucide-react";
 
-export default function About() {
+export default function AboutPage() {
   return (
-    <main className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
-      <div className="max-w-3xl mx-auto text-center">
-        <FadeIn>
-          <h1 className="text-4xl font-bold text-white mb-6 font-heading">About Vyra Connect</h1>
-          <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-            Vyra Connect is a smart vehicle identification and private communication platform. Physical QR tags connect scanners to owners—without exposing personal phone numbers.
-          </p>
-        </FadeIn>
+    <main className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto overflow-hidden">
+      
+      {/* Brand Mission Statement */}
+      <FadeIn className="text-center space-y-6">
         
-        <ul className="text-left text-gray-300 space-y-6 max-w-2xl mx-auto mb-12">
-          <FadeIn delay={0.1} direction="left">
-            <li className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-blue-500/30 transition-colors">
-              <ShieldCheck className="w-8 h-8 text-blue-500 shrink-0" />
-              <span className="leading-relaxed">Scan a Vyra Tag or plate to notify, chat, SMS, or call the owner privately.</span>
-            </li>
-          </FadeIn>
-          <FadeIn delay={0.2} direction="left">
-            <li className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-blue-500/30 transition-colors">
-              <Smartphone className="w-8 h-8 text-blue-500 shrink-0" />
-              <span className="leading-relaxed">Owners manage vehicles, documents, family access, Live Status, and Lost Mode in the app.</span>
-            </li>
-          </FadeIn>
-          <FadeIn delay={0.3} direction="left">
-            <li className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-blue-500/30 transition-colors">
-              <ShoppingCart className="w-8 h-8 text-blue-500 shrink-0" />
-              <span className="leading-relaxed">Activate on web or in-app, order tags online, and stay protected with privacy-first channels.</span>
-            </li>
-          </FadeIn>
-        </ul>
-        
-        <FadeIn delay={0.4} direction="up" className="space-y-6">
-          <p className="text-gray-300 bg-blue-900/20 p-6 rounded-xl border border-blue-500/20 leading-relaxed shadow-[0_0_30px_rgba(37,99,235,0.1)]">
-            Available on Google Play and the App Store. Use the website to find a vehicle, activate a new QR, or buy a Vyra Tag—then manage everything from the mobile app.
-          </p>
-          <div className="pt-2">
-            <Link 
-              href="/buy" 
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-8 py-3.5 rounded-full text-base shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 transition-all"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              Order Vyra Smart Tag Now
-            </Link>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-cyan-300 text-xs font-mono uppercase tracking-wider mb-2">
+          About Vyra Connect
+        </div>
+
+        <h1 className="text-3xl sm:text-5xl font-black text-white font-heading tracking-tight leading-tight max-w-2xl mx-auto">
+          Making vehicle communication simpler and more private.
+        </h1>
+
+        <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+          Vyra Connect helps vehicle owners stay reachable without publicly displaying their personal phone number on their car or bike.
+        </p>
+
+      </FadeIn>
+
+      {/* Our Goal: Simple. Private. Connected. */}
+      <div className="my-16">
+        <FadeIn delay={0.15}>
+          <div className="rounded-3xl bg-white/[0.03] border border-white/10 p-8 sm:p-12 text-center">
+            
+            <h2 className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold mb-6">
+              Our Goal
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
+              
+              <div className="space-y-2">
+                <span className="text-2xl font-black text-white block font-heading">Simple.</span>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Zero apps required for scanners. Instant connection in seconds.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-2xl font-black text-white block font-heading">Private.</span>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Your personal phone number is never exposed to strangers.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-2xl font-black text-white block font-heading">Connected.</span>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Stay reachable for parking alerts, emergencies, and safety.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="mt-10 pt-6 border-t border-white/10 flex items-center justify-center gap-2 text-xs text-gray-400 font-mono">
+              <MapPin className="w-4 h-4 text-cyan-400" />
+              <span>Headquartered in Vettichira, Kerala, India</span>
+            </div>
+
           </div>
         </FadeIn>
       </div>
+
+      {/* Navigation Return */}
+      <FadeIn delay={0.25} className="text-center">
+        <Link 
+          href="/how-it-works"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition"
+        >
+          <span>See How Vyra Connect Works</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </FadeIn>
+
     </main>
   );
 }

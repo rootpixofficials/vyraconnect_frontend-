@@ -10,8 +10,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const headingFont = Syncopate({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
-  title: "Vyra Connect | Smart Vehicle Identification Platform",
-  description: "Vyra Connect is a smart vehicle identification and private communication platform.",
+  title: "Vyra Connect | Your Vehicle. Your Privacy.",
+  description: "Put Vyra on your vehicle. If someone needs to contact you, they scan it and can reach you without seeing your personal phone number.",
+  keywords: ["vehicle privacy", "smart qr tag", "car qr code", "bike privacy tag", "private parking call", "vyra connect"],
 };
 
 export default function RootLayout({
@@ -20,72 +21,111 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const footerContent = (
-    <footer className="bg-black/60 pt-20 pb-10 border-t border-white/10 backdrop-blur-lg mt-auto">
+    <footer className="bg-[#040810] pt-16 pb-10 border-t border-white/10 backdrop-blur-lg mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-24 h-24 relative">
-                 <Image src="/vyra-logo-navbar.png" alt="Vyra Connect" fill className="object-contain object-left" priority />
-              </div>
-            </div>
-            <p className="text-gray-400 mb-6 max-w-md">
-              Smart Vehicle Identification Platform. Activate your tag, get private notifications when someone scans, enable Lost Mode when needed.
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
+          
+          {/* Brand Info (5 cols) */}
+          <div className="md:col-span-5 space-y-4">
+            <Link href="/" className="inline-block relative h-10 w-36 sm:h-12 sm:w-44">
+              <Image 
+                src="/vyra-logo-navbar.png" 
+                alt="Vyra Connect" 
+                fill 
+                className="object-contain object-left" 
+                priority 
+              />
+            </Link>
+            
+            <p className="text-gray-400 text-sm max-w-sm leading-relaxed">
+              Put Vyra on your vehicle. Anyone who needs to reach you can scan it and contact you privately — without seeing your phone number.
             </p>
-            <div className="space-y-4 text-gray-400">
-              <p>Calicut, Kerala, India</p>
-              <p>Phone: +91 97469 10890</p>
-              <p>Email: vyraconnect.in@gmail.com</p>
+
+            <div className="pt-2 text-xs text-gray-400 space-y-1.5 font-mono">
+              <p className="text-gray-300 font-sans font-medium">📍 Vettichira, Kerala, India</p>
+              <p>📞 Phone & WhatsApp: <a href="tel:+919746910890" className="hover:text-cyan-400 transition">+91 97469 10890</a></p>
+              <p>✉️ Email: <a href="mailto:vyraconnect.in@gmail.com" className="hover:text-cyan-400 transition">vyraconnect.in@gmail.com</a></p>
             </div>
           </div>
           
-          <div>
-            <h4 className="font-bold text-white mb-6">Useful Links</h4>
-            <ul className="space-y-3 text-gray-400">
-              <li><Link href="/" className="hover:text-blue-400 transition">Home</Link></li>
-              <li><Link href="/buy" className="hover:text-cyan-400 font-semibold text-cyan-300 transition flex items-center gap-1.5">★ Buy Vyra Tag</Link></li>
-              <li><Link href="/about" className="hover:text-blue-400 transition">About Vyra Connect</Link></li>
-              <li><Link href="/how-it-works" className="hover:text-blue-400 transition">How It Works</Link></li>
-              <li><Link href="/scan-qr" className="hover:text-blue-400 transition">Scan QR</Link></li>
-              <li><Link href="/contact" className="hover:text-blue-400 transition">Contact & FAQ</Link></li>
+          {/* Product Links (3 cols) */}
+          <div className="md:col-span-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4 font-mono">
+              Product
+            </h4>
+            <ul className="space-y-2.5 text-sm text-gray-400">
+              <li>
+                <Link href="/how-it-works" className="hover:text-white transition">How It Works</Link>
+              </li>
+              <li>
+                <Link href="/features" className="hover:text-white transition">Features</Link>
+              </li>
+              <li>
+                <Link href="/buy" className="hover:text-cyan-400 font-semibold text-cyan-300 transition">
+                  Buy Vyra Tag (₹499)
+                </Link>
+              </li>
+              <li>
+                <Link href="/scan-qr" className="hover:text-white transition">Scan QR</Link>
+              </li>
             </ul>
           </div>
           
-          <div className="flex flex-col h-full">
-            <div>
-              <h4 className="font-bold text-white mb-6">Our Features</h4>
-              <ul className="space-y-3 text-gray-400 mb-6">
-                <li>Private QR contact</li>
-                <li>Lost Mode recovery</li>
-                <li>Masked chat / SMS / voice</li>
-                <li>Vehicle document locker</li>
-              </ul>
-            </div>
-            <div className="mt-auto flex gap-6">
-              <Link href="#" title="Email" className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                <FaEnvelope className="w-5 h-5" />
-              </Link>
-              <Link href="#" title="Instagram" className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                <FaInstagram className="w-5 h-5" />
-              </Link>
-              <Link href="#" title="WhatsApp" className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                <FaWhatsapp className="w-5 h-5" />
-              </Link>
-              <Link href="#" title="Facebook" className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                <FaFacebookF className="w-5 h-5" />
-              </Link>
-              <Link href="#" title="YouTube" className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                <FaYoutube className="w-5 h-5" />
-              </Link>
-            </div>
+          {/* Support (2 cols) */}
+          <div className="md:col-span-2">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4 font-mono">
+              Support
+            </h4>
+            <ul className="space-y-2.5 text-sm text-gray-400">
+              <li>
+                <Link href="/contact" className="hover:text-white transition">Support & FAQ</Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition">Order Help</Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition">Contact Us</Link>
+              </li>
+            </ul>
           </div>
+
+          {/* Company & Legal (2 cols) */}
+          <div className="md:col-span-2">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4 font-mono">
+              Company
+            </h4>
+            <ul className="space-y-2.5 text-sm text-gray-400">
+              <li>
+                <Link href="/about" className="hover:text-white transition">About</Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
+              </li>
+              <li>
+                <Link href="/terms-and-conditions" className="hover:text-white transition">Terms & Conditions</Link>
+              </li>
+            </ul>
+          </div>
+
         </div>
         
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>Ac {new Date().getFullYear()} Vyra Connect. All Rights Reserved.</p>
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-            <Link href="/terms-and-conditions" className="hover:text-white transition">Terms & Conditions</Link>
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+          <p>&copy; {new Date().getFullYear()} Vyra Connect. All rights reserved. Vettichira, Kerala.</p>
+          
+          <div className="flex items-center gap-4 text-gray-400">
+            <a href="https://wa.me/919746910890" target="_blank" rel="noopener noreferrer" title="WhatsApp" className="hover:text-cyan-400 transition">
+              <FaWhatsapp className="w-4 h-4" />
+            </a>
+            <a href="mailto:vyraconnect.in@gmail.com" title="Email" className="hover:text-cyan-400 transition">
+              <FaEnvelope className="w-4 h-4" />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram" className="hover:text-cyan-400 transition">
+              <FaInstagram className="w-4 h-4" />
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" title="YouTube" className="hover:text-cyan-400 transition">
+              <FaYoutube className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </div>
@@ -94,7 +134,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${headingFont.variable} font-sans bg-[linear-gradient(135deg,#060d18_0%,#0a1526_50%,#040914_100%)] text-gray-200 antialiased min-h-screen selection:bg-blue-600 selection:text-white flex flex-col`}>
+      <body className={`${inter.variable} ${headingFont.variable} font-sans bg-[linear-gradient(135deg,#060d18_0%,#0a1526_50%,#040914_100%)] text-gray-200 antialiased min-h-screen selection:bg-cyan-500 selection:text-black flex flex-col`}>
         <GlobalWrapper footer={footerContent}>
           {children}
         </GlobalWrapper>

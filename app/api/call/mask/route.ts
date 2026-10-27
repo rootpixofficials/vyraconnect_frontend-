@@ -109,6 +109,24 @@ export async function POST(req: Request) {
     const scannerMasked = maskDisplayNumber(cleanScanner);
     const targetMasked = maskDisplayNumber(resolvedTarget);
 
+    // Sync active session with shared backend Exotel dynamic router
+    try {
+      await fetch("https://api.vyraconnect.in/api/exotel/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scannerNumber: cleanScanner,
+          targetNumber: resolvedTarget,
+          targetType,
+          targetName: resolvedTargetName,
+          plateNumber: plateNumber || "UNKNOWN",
+          qrToken
+        })
+      });
+    } catch (syncErr: any) {
+      console.warn("[EXOTEL SESSION SYNC WARNING]", syncErr.message);
+    }
+
     // Save session mapping in log
     logCallEvent({
       sessionId: `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

@@ -199,7 +199,7 @@ export default function ScanQR() {
             className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-bold text-sm"
           >
             <ShoppingCart className="w-4 h-4" />
-            Buy Official Vyra Tag (Free Express Delivery) <ArrowRight className="w-4 h-4" />
+            Get Official Vyra Tag (Free Express Delivery) <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </FadeIn>

@@ -248,7 +248,7 @@ export default function VehicleBanner({
                 className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-5 py-2.5 rounded text-xs sm:text-sm shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-cyan-400/40"
               >
                 <ShoppingCart className="w-3.5 h-3.5" />
-                Get Vyra Kit (₹399)
+                Get Vyra Tag
               </Link>
               <Link
                 href="/scan-qr"

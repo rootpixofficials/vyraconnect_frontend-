@@ -94,7 +94,7 @@ export default function Navbar() {
               href="/buy" 
               className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 border border-cyan-400/30"
             >
-              <span>Get Vyra</span>
+              <span>Get Vyra Tag</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -105,7 +105,7 @@ export default function Navbar() {
               href="/buy" 
               className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md"
             >
-              Get Vyra
+              Get Vyra Tag
             </Link>
             
             <button 

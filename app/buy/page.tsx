@@ -129,7 +129,7 @@ Please confirm my order and share delivery details!`;
       {/* Top Title */}
       <FadeIn className="text-center max-w-2xl mx-auto mb-12">
         <h1 className="text-3xl sm:text-5xl font-black text-white font-heading tracking-tight mb-3">
-          Get Your Vyra
+          Get Your Vyra Tag
         </h1>
         <p className="text-gray-400 text-sm sm:text-base">
           Complete smart vehicle privacy kit. No monthly subscriptions, free express delivery across India.

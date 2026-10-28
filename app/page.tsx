@@ -45,16 +45,6 @@ export default function Home() {
                 Let anyone contact you through your vehicle without revealing your personal phone number.
               </p>
 
-              {/* Price / Offer Highlight */}
-              <div className="flex items-center justify-center lg:justify-start gap-3 pt-1 text-sm">
-                <span className="text-xs uppercase tracking-wider text-gray-400 font-mono">Special Offer:</span>
-                <span className="text-2xl font-black text-white">₹499</span>
-                <span className="text-base text-gray-500 line-through">₹799</span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  Save ₹300
-                </span>
-              </div>
-
               {/* Primary Call to Actions */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
                 <Link 
@@ -62,7 +52,7 @@ export default function Home() {
                   className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white px-8 py-4 rounded-full font-extrabold text-base hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-cyan-400/30 shadow-lg"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  <span>Get Vyra</span>
+                  <span>Get Vyra Tag</span>
                 </Link>
 
                 <Link 
@@ -406,7 +396,7 @@ export default function Home() {
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-bold px-8 py-4 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-wider"
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    <span>Get Vyra Kit</span>
+                    <span>Get Vyra Tag</span>
                   </Link>
                 </div>
               </div>
@@ -464,7 +454,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-9 py-4 rounded-full text-base shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 transition-all"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>Get Vyra — ₹499</span>
+              <span>Get Vyra Tag — ₹499</span>
             </Link>
           </div>
         </FadeIn>

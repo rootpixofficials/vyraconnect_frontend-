@@ -149,7 +149,7 @@ export default function HowItWorks() {
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white font-extrabold px-8 py-3.5 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:scale-105 transition"
           >
             <ShoppingCart className="w-4 h-4" />
-            <span>Get Vyra &rarr;</span>
+            <span>Get Vyra Tag &rarr;</span>
           </Link>
         </div>
       </FadeIn>

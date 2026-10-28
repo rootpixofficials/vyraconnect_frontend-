@@ -62,7 +62,7 @@ export default function RootLayout({
               </li>
               <li>
                 <Link href="/buy" className="hover:text-cyan-400 font-semibold text-cyan-300 transition">
-                  Buy Vyra Tag (₹499)
+                  Get Vyra Tag
                 </Link>
               </li>
               <li>

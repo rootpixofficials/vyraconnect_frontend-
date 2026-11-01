@@ -92,43 +92,36 @@ export default function MaskedCallModal({
 
       const data = await res.json();
       const virtualNumber = data.virtualNumber || defaultVirtual;
-      const dialNumber = data.dialNumber || `+91${virtualNumber.replace(/^0/, "")}`;
+      const cleanDial = (data.dialNumber || `+91${virtualNumber.replace(/^0/, "")}`).replace(/^tel:/, "");
+      const dialHref = `tel:${cleanDial}`;
 
       const payload = {
         scannerMasked: data.scannerMasked || liveScannerMasked,
         targetMasked: data.targetMasked || resolvedTargetMasked,
         targetName: data.targetName || targetLabel,
         virtualNumber,
-        dialNumber,
+        dialNumber: dialHref,
         message: data.message
       };
 
       setCallData(payload);
       setCallInitiated(true);
-
-      // Trigger dialer application
-      try {
-        window.location.href = `tel:${dialNumber}`;
-      } catch (navErr) {
-        console.warn("Dialer auto-navigation blocked by browser, manual tap available:", navErr);
-      }
+      // NOTE: Do NOT use window.location.href = tel:... in async callback.
+      // On mobile browsers (especially Chrome iOS / Safari webviews), setting window.location.href
+      // after an async fetch aborts the document load with "This page couldn't load".
+      // We safely present Step 2 with a direct native <a href="tel:..."> anchor link.
     } catch (err: any) {
       console.error("Masked call setup error:", err);
-      const dialNumber = `+91${defaultVirtual.replace(/^0/, "")}`;
+      const dialHref = `tel:+91${defaultVirtual.replace(/^0/, "")}`;
       setCallData({
         scannerMasked: liveScannerMasked,
         targetMasked: resolvedTargetMasked,
         targetName: targetLabel,
         virtualNumber: defaultVirtual,
-        dialNumber,
+        dialNumber: dialHref,
         message: "Masked privacy session active."
       });
       setCallInitiated(true);
-      try {
-        window.location.href = `tel:${dialNumber}`;
-      } catch (navErr) {
-        console.warn("Auto-navigation blocked:", navErr);
-      }
     } finally {
       setLoading(false);
     }
@@ -169,11 +162,6 @@ export default function MaskedCallModal({
     } finally {
       setAutomatedLoading(false);
     }
-  };
-
-  const handleManualDial = () => {
-    const dialNum = callData?.dialNumber || `+91${defaultVirtual.replace(/^0/, "")}`;
-    window.location.href = `tel:${dialNum}`;
   };
 
   const handleReset = () => {
@@ -317,6 +305,16 @@ export default function MaskedCallModal({
                 </>
               )}
             </button>
+
+            <div className="text-center pt-1">
+              <span className="text-[11px] text-gray-400">Prefer to dial directly? </span>
+              <a
+                href={`tel:+91${defaultVirtual.replace(/^0/, "")}`}
+                className="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-mono font-bold"
+              >
+                Dial {defaultVirtual}
+              </a>
+            </div>
           </form>
         ) : (
           /* STEP 2: Ask Permission & Navigate to Phone Call Application */
@@ -358,14 +356,13 @@ export default function MaskedCallModal({
 
             {/* Action Buttons: Navigate to Phone Calling App */}
             <div className="space-y-2 pt-1">
-              <button
-                type="button"
-                onClick={handleManualDial}
-                className="w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:opacity-95 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 text-base shadow-[0_0_25px_rgba(16,185,129,0.4)] transition active:scale-95 border border-emerald-400/50"
+              <a
+                href={callData?.dialNumber || `tel:+91${defaultVirtual.replace(/^0/, "")}`}
+                className="w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:opacity-95 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 text-base shadow-[0_0_25px_rgba(16,185,129,0.4)] transition active:scale-95 border border-emerald-400/50 cursor-pointer"
               >
-                <PhoneCall className="w-5 h-5" />
-                Open Phone Dialer & Call Masked Number
-              </button>
+                <PhoneCall className="w-5 h-5 animate-pulse" />
+                Call Masked Number ({callData?.virtualNumber || defaultVirtual})
+              </a>
 
               <p className="text-[11px] text-gray-400">
                 Tap above to open your phone&apos;s calling app and dial {callData?.virtualNumber || defaultVirtual} securely.

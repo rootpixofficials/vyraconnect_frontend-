@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
@@ -345,24 +348,27 @@ function ScanPageContent() {
   const emergencyRelationship = primaryEmergency?.relationship || "Relative";
 
   const handleOpenOwnerCall = () => {
-    const ownerMobile = customer?.mobile;
+    const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
+    const cleanOwner = ownerMobile ? ownerMobile.replace(/[^0-9]/g, "") : "";
     setCallModalTarget({
       targetType: "owner",
       targetLabel: "Vehicle Owner",
       targetName: customer?.name || customer?.full_name || "Vehicle Owner",
       targetNumber: ownerMobile,
-      targetMasked: ownerMobile ? `+91 ••••• ••${ownerMobile.replace(/[^0-9]/g, "").slice(-3)}` : undefined
+      targetMasked: cleanOwner ? `+91 ••••• ••${cleanOwner.slice(-3)}` : undefined
     });
     setIsCallModalOpen(true);
   };
 
   const handleOpenEmergencyCall = () => {
+    const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
+    const cleanEmer = emerMobile ? emerMobile.replace(/[^0-9]/g, "") : "";
     setCallModalTarget({
       targetType: "emergency",
       targetLabel: `Emergency Contact (${emergencyRelationship})`,
       targetName: emergencyName,
-      targetNumber: emergencyMobile,
-      targetMasked: emergencyMobile ? `+91 ••••• ••${emergencyMobile.replace(/[^0-9]/g, "").slice(-3)}` : undefined
+      targetNumber: emerMobile,
+      targetMasked: cleanEmer ? `+91 ••••• ••${cleanEmer.slice(-3)}` : undefined
     });
     setIsCallModalOpen(true);
   };

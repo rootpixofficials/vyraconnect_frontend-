@@ -49,14 +49,17 @@ export default function MaskedCallModal({
 
   if (!isOpen) return null;
 
-  const resolvedTargetNumber = targetNumber || ownerNumber;
-  const cleanScanner = scannerPhone.replace(/[^0-9]/g, "");
+  const resolvedTargetNumber = targetNumber 
+    ? String(targetNumber) 
+    : (ownerNumber ? String(ownerNumber) : undefined);
+  const cleanScanner = String(scannerPhone || "").replace(/[^0-9]/g, "");
   const liveScannerMasked = cleanScanner.length >= 4 
     ? `+91 ••••• ••${cleanScanner.slice(-3)}`
     : "+91 ••••• ••••";
 
-  const resolvedTargetMasked = targetMasked || ownerMasked || (resolvedTargetNumber 
-    ? `+91 ••••• ••${resolvedTargetNumber.replace(/[^0-9]/g, "").slice(-3)}`
+  const cleanTarget = resolvedTargetNumber ? resolvedTargetNumber.replace(/[^0-9]/g, "") : "";
+  const resolvedTargetMasked = targetMasked || ownerMasked || (cleanTarget 
+    ? `+91 ••••• ••${cleanTarget.slice(-3)}`
     : "+91 ••••• ••890");
 
   const defaultVirtual = "04954269245";
@@ -306,14 +309,18 @@ export default function MaskedCallModal({
               )}
             </button>
 
-            <div className="text-center pt-1">
-              <span className="text-[11px] text-gray-400">Prefer to dial directly? </span>
+            {/* Quick 1-Tap Direct Call Option without typing */}
+            <div className="pt-2 border-t border-white/10">
               <a
                 href={`tel:+91${defaultVirtual.replace(/^0/, "")}`}
-                className="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-mono font-bold"
+                className="w-full bg-white/10 hover:bg-white/15 active:scale-95 text-cyan-300 font-bold py-3.5 px-4 rounded-xl border border-cyan-400/30 text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
-                Dial {defaultVirtual}
+                <PhoneCall className="w-4 h-4 text-cyan-400" />
+                <span>Call Private Number Directly ({defaultVirtual})</span>
               </a>
+              <p className="text-[10px] text-gray-400 text-center mt-1.5">
+                No typing needed &bull; Dials our 2-way masked ExoPhone relay directly
+              </p>
             </div>
           </form>
         ) : (

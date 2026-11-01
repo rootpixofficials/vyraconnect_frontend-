@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { 
   PhoneCall, Lock, X, Smartphone, ShieldCheck, 
-  PhoneOff, AlertTriangle, ArrowRight, CheckCircle2,
-  ExternalLink
+  PhoneOff, AlertTriangle, ArrowRight, CheckCircle2
 } from "lucide-react";
 
 interface MaskedCallModalProps {
@@ -47,6 +46,9 @@ export default function MaskedCallModal({
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [automatedLoading, setAutomatedLoading] = useState(false);
+  const [automatedSuccess, setAutomatedSuccess] = useState<string | null>(null);
+
   if (!isOpen) return null;
 
   const resolvedTargetNumber = targetNumber 
@@ -57,14 +59,13 @@ export default function MaskedCallModal({
     ? `+91 ••••• ••${cleanScanner.slice(-3)}`
     : "+91 ••••• ••••";
 
-  const cleanTarget = resolvedTargetNumber ? resolvedTargetNumber.replace(/[^0-9]/g, "") : "";
+  const cleanTarget = resolvedTargetNumber ? String(resolvedTargetNumber).replace(/[^0-9]/g, "") : "";
   const resolvedTargetMasked = targetMasked || ownerMasked || (cleanTarget 
     ? `+91 ••••• ••${cleanTarget.slice(-3)}`
     : "+91 ••••• ••890");
 
   const defaultVirtual = "04954269245";
-  const [automatedLoading, setAutomatedLoading] = useState(false);
-  const [automatedSuccess, setAutomatedSuccess] = useState<string | null>(null);
+  const defaultDialHref = `tel:+91${defaultVirtual.replace(/^0/, "")}`;
 
   const handleStartCall = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,19 +110,14 @@ export default function MaskedCallModal({
 
       setCallData(payload);
       setCallInitiated(true);
-      // NOTE: Do NOT use window.location.href = tel:... in async callback.
-      // On mobile browsers (especially Chrome iOS / Safari webviews), setting window.location.href
-      // after an async fetch aborts the document load with "This page couldn't load".
-      // We safely present Step 2 with a direct native <a href="tel:..."> anchor link.
     } catch (err: any) {
       console.error("Masked call setup error:", err);
-      const dialHref = `tel:+91${defaultVirtual.replace(/^0/, "")}`;
       setCallData({
         scannerMasked: liveScannerMasked,
         targetMasked: resolvedTargetMasked,
         targetName: targetLabel,
         virtualNumber: defaultVirtual,
-        dialNumber: dialHref,
+        dialNumber: defaultDialHref,
         message: "Masked privacy session active."
       });
       setCallInitiated(true);
@@ -132,7 +128,7 @@ export default function MaskedCallModal({
 
   const handleAutomatedCallback = async () => {
     if (cleanScanner.length < 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError("Please enter a valid 10-digit mobile number above first.");
       return;
     }
 
@@ -179,16 +175,15 @@ export default function MaskedCallModal({
   const isEmergency = targetType === "emergency";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-[#091122] via-[#050b16] to-black border border-cyan-500/40 rounded-[2.5rem] p-6 sm:p-8 shadow-[0_20px_70px_rgba(6,182,212,0.3)] overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+      <div className="relative w-full max-w-lg bg-slate-900 border border-cyan-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
         
-        {/* Ambient Top Glow */}
-        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 ${isEmergency ? 'bg-red-500/20' : 'bg-cyan-500/15'} blur-[60px] pointer-events-none`} />
-
         {/* Close Button */}
         <button
+          type="button"
           onClick={handleReset}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"
+          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition"
+          aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
@@ -197,13 +192,13 @@ export default function MaskedCallModal({
         <div className="text-center mb-6">
           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${
             isEmergency 
-              ? 'bg-red-500/10 border-red-400/40 text-red-300' 
-              : 'bg-cyan-500/10 border-cyan-400/30 text-cyan-300'
+              ? 'bg-red-500/20 border-red-400/40 text-red-300' 
+              : 'bg-cyan-500/20 border-cyan-400/30 text-cyan-300'
           } border text-[11px] font-mono uppercase tracking-wider mb-2`}>
             {isEmergency ? <AlertTriangle className="w-3.5 h-3.5 text-red-400" /> : <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />}
-            {isEmergency ? 'Emergency Masked Call' : '2-Way Privacy Shield Relay'}
+            {isEmergency ? 'Emergency Masked Call' : '2-Way Privacy Relay'}
           </div>
-          <h3 className="text-2xl font-extrabold text-white font-heading">
+          <h3 className="text-2xl font-extrabold text-white">
             {isEmergency ? 'Emergency Masked Call' : 'Private Masked Call'}
           </h3>
           <p className="text-xs text-gray-400 mt-1">
@@ -212,13 +207,12 @@ export default function MaskedCallModal({
         </div>
 
         {/* Visual Number Masking Diagram */}
-        <div className="bg-black/60 border border-white/10 rounded-2xl p-4 mb-6">
+        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 mb-6">
           <div className="text-[10px] font-mono uppercase tracking-wider text-center text-gray-400 mb-3">
             Both Numbers Remain 100% Private
           </div>
 
           <div className="flex items-center justify-between text-center gap-2">
-            
             {/* Scanner Side (You) */}
             <div className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2.5">
               <Smartphone className="w-5 h-5 text-gray-300 mx-auto mb-1" />
@@ -232,12 +226,12 @@ export default function MaskedCallModal({
             <div className="flex flex-col items-center px-1">
               <div className={`w-9 h-9 rounded-full ${
                 isEmergency 
-                  ? 'bg-gradient-to-r from-red-600 to-amber-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
-                  : 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
-              } text-white flex items-center justify-center`}>
+                  ? 'bg-gradient-to-r from-red-600 to-amber-500' 
+                  : 'bg-gradient-to-r from-blue-600 to-cyan-500'
+              } text-white flex items-center justify-center shadow-lg`}>
                 <Lock className="w-4 h-4" />
               </div>
-              <span className="text-[9px] font-mono text-gray-300 font-bold mt-1 uppercase">Virtual Relay</span>
+              <span className="text-[9px] font-mono text-gray-300 font-bold mt-1 uppercase">ExoPhone</span>
             </div>
 
             {/* Recipient Side */}
@@ -248,7 +242,6 @@ export default function MaskedCallModal({
                 {callData?.targetMasked || resolvedTargetMasked}
               </div>
             </div>
-
           </div>
 
           <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-center text-gray-400 flex items-center justify-center gap-1.5">
@@ -259,154 +252,125 @@ export default function MaskedCallModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs">
+          <div className="mb-4 p-3.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs">
             {error}
           </div>
         )}
 
-        {/* STEP 1: Enter Scanner Number Form */}
+        {/* STEP 1: Enter Number OR Dial Directly */}
         {!callInitiated ? (
-          <form onSubmit={handleStartCall} className="space-y-4">
+          <div className="space-y-4">
+            {/* Quick 1-Tap Direct Call Option */}
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                Enter Your Mobile Number (Will Be Masked)
-              </label>
-              <div className="relative">
+              <a
+                href={defaultDialHref}
+                className="w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-700 hover:to-cyan-600 active:scale-95 text-white font-extrabold py-3.5 px-4 rounded-xl border border-cyan-400/30 text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg text-center"
+              >
+                <PhoneCall className="w-4 h-4 text-white" />
+                <span>Call Private Number Directly ({defaultVirtual})</span>
+              </a>
+              <p className="text-[10px] text-gray-400 text-center mt-1.5">
+                No typing required &bull; Direct native dial to 2-way masked ExoPhone relay
+              </p>
+            </div>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-3 text-gray-400 text-[10px] font-mono uppercase">or register your number</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <form onSubmit={handleStartCall} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">
+                  Enter Your Mobile Number (For Masked Bridge)
+                </label>
                 <input
                   type="tel"
                   value={scannerPhone}
                   onChange={(e) => setScannerPhone(e.target.value)}
-                  placeholder="e.g. 98765 43210"
+                  placeholder="e.g. 9876543210"
                   maxLength={15}
                   required
-                  className="w-full bg-black/50 border border-white/15 rounded-xl px-4 py-3.5 text-white font-mono text-base outline-none focus:border-cyan-400 transition"
+                  className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-white font-mono text-base outline-none focus:border-cyan-400 transition"
                 />
               </div>
-              <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
-                Your number is never shown to the recipient. When you tap Call, we will ask permission and navigate directly to your phone dialer to call our masked virtual number.
-              </p>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full ${
-                isEmergency 
-                  ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 shadow-[0_0_30px_rgba(239,68,68,0.5)] border-red-400/40' 
-                  : 'bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.5)] border-cyan-400/40'
-              } text-white font-extrabold py-4 px-6 rounded-2xl transition-all flex items-center justify-center gap-2 text-base border disabled:opacity-50`}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Preparing Masked Call...
-                </span>
-              ) : (
-                <>
-                  <PhoneCall className="w-5 h-5" />
-                  {isEmergency ? 'Call Emergency Contact (Masked)' : 'Call Owner (Masked)'}
-                </>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-3 px-3 rounded-xl border border-white/10 text-xs transition flex items-center justify-center gap-1.5"
+                >
+                  {loading ? "Preparing..." : "1. Setup Dialer Session"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAutomatedCallback}
+                  disabled={automatedLoading}
+                  className="w-full bg-cyan-600/30 hover:bg-cyan-600/40 text-cyan-200 font-bold py-3 px-3 rounded-xl border border-cyan-500/30 text-xs transition flex items-center justify-center gap-1.5"
+                >
+                  {automatedLoading ? "Calling..." : "2. Automated Callback"}
+                </button>
+              </div>
+
+              {automatedSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs text-center">
+                  ✅ {automatedSuccess}
+                </div>
               )}
-            </button>
-
-            {/* Quick 1-Tap Direct Call Option without typing */}
-            <div className="pt-2 border-t border-white/10">
-              <a
-                href={`tel:+91${defaultVirtual.replace(/^0/, "")}`}
-                className="w-full bg-white/10 hover:bg-white/15 active:scale-95 text-cyan-300 font-bold py-3.5 px-4 rounded-xl border border-cyan-400/30 text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              >
-                <PhoneCall className="w-4 h-4 text-cyan-400" />
-                <span>Call Private Number Directly ({defaultVirtual})</span>
-              </a>
-              <p className="text-[10px] text-gray-400 text-center mt-1.5">
-                No typing needed &bull; Dials our 2-way masked ExoPhone relay directly
-              </p>
-            </div>
-          </form>
+            </form>
+          </div>
         ) : (
-          /* STEP 2: Ask Permission & Navigate to Phone Call Application */
-          <div className="space-y-5 text-center">
-            
-            <div className="relative w-20 h-20 mx-auto my-2 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
-              <div className="relative w-16 h-16 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-white flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.6)]">
-                <PhoneCall className="w-7 h-7 animate-bounce" />
+          /* STEP 2: Dial Registered Masked Number */
+          <div className="space-y-4 text-center">
+            <div className="relative w-16 h-16 mx-auto my-1 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-white flex items-center justify-center shadow-lg">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
             </div>
 
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/40 mb-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Permission to Open Phone Dialer
-              </div>
-              <h4 className="text-xl font-extrabold text-white">Navigate to Phone Call App</h4>
+              <h4 className="text-lg font-extrabold text-white">Masked Bridge Ready</h4>
               <p className="text-xs text-gray-300 mt-1">
-                Connecting to masked relay: <strong className="text-cyan-300 font-mono text-sm">{callData?.virtualNumber || defaultVirtual}</strong>
+                Virtual Relay: <strong className="text-cyan-300 font-mono text-sm">{callData?.virtualNumber || defaultVirtual}</strong>
               </p>
             </div>
 
-            {/* Permission Prompt Card */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-300">
-                <span className="text-gray-400">Target Contact:</span>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-left space-y-1.5 text-xs text-gray-300">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Target:</span>
                 <span className="font-bold text-white">{callData?.targetName || targetLabel}</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-gray-300">
+              <div className="flex justify-between">
                 <span className="text-gray-400">Your Number:</span>
                 <span className="font-mono text-cyan-300 font-bold">{callData?.scannerMasked} (Masked)</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-gray-300">
+              <div className="flex justify-between">
                 <span className="text-gray-400">Recipient Number:</span>
                 <span className="font-mono text-white font-bold">{callData?.targetMasked} (Masked)</span>
               </div>
             </div>
 
-            {/* Action Buttons: Navigate to Phone Calling App */}
             <div className="space-y-2 pt-1">
               <a
-                href={callData?.dialNumber || `tel:+91${defaultVirtual.replace(/^0/, "")}`}
-                className="w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:opacity-95 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 text-base shadow-[0_0_25px_rgba(16,185,129,0.4)] transition active:scale-95 border border-emerald-400/50 cursor-pointer"
+                href={callData?.dialNumber || defaultDialHref}
+                className="w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:opacity-95 text-white font-black py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg transition active:scale-95 border border-emerald-400/50 cursor-pointer text-center"
               >
-                <PhoneCall className="w-5 h-5 animate-pulse" />
-                Call Masked Number ({callData?.virtualNumber || defaultVirtual})
+                <PhoneCall className="w-4 h-4" />
+                <span>Open Phone App & Dial ({callData?.virtualNumber || defaultVirtual})</span>
               </a>
 
-              <p className="text-[11px] text-gray-400">
-                Tap above to open your phone&apos;s calling app and dial {callData?.virtualNumber || defaultVirtual} securely.
+              <p className="text-[10px] text-gray-400">
+                Tap above to open your phone dialer. Both numbers remain 100% hidden.
               </p>
             </div>
 
-            {/* Alternative Automated Callback Option */}
-            <div className="pt-2 border-t border-white/10">
-              {automatedSuccess ? (
-                <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs text-center">
-                  ✅ {automatedSuccess}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleAutomatedCallback}
-                  disabled={automatedLoading}
-                  className="w-full bg-white/5 hover:bg-white/10 text-cyan-300 font-semibold py-2.5 px-4 rounded-xl border border-white/10 text-xs transition flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {automatedLoading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 border-2 border-cyan-300 border-t-transparent rounded-full animate-spin" />
-                      Triggering Automated Private Call...
-                    </span>
-                  ) : (
-                    <>
-                      <span>Need an automated callback? Click to receive call</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-
             <button
+              type="button"
               onClick={handleReset}
-              className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-3 rounded-xl border border-white/10 text-xs transition mt-2"
+              className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl border border-white/10 text-xs transition"
             >
               Done / Close
             </button>

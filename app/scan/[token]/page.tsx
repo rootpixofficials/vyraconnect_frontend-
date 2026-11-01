@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
-import { ACTIVE_TEST_TOKEN } from "@/lib/config";
+import ScanClient from "../ScanClient";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function DynamicScanRoute({
   params
@@ -7,5 +9,5 @@ export default async function DynamicScanRoute({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  redirect(`/scan?token=${encodeURIComponent(token || ACTIVE_TEST_TOKEN)}`);
+  return <ScanClient initialToken={token} />;
 }

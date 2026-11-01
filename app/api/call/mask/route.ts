@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getExotelAccountStatus, maskDisplayNumber } from "@/lib/exotel";
+import { getExotelAccountStatus, maskDisplayNumber, initiateMaskedCall } from "@/lib/exotel";
 import fs from "fs";
 import path from "path";
 
@@ -50,7 +50,8 @@ export async function POST(req: Request) {
       targetType = "owner", 
       targetName = "Vehicle Owner",
       plateNumber, 
-      qrToken 
+      qrToken,
+      mode = "dialer" // "dialer" (Uber direct relay) or "automated" (click-to-call)
     } = body;
 
     const cleanScanner = (scannerNumber || "").replace(/[^0-9]/g, "");
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
       resolvedTarget = process.env.DEFAULT_OWNER_NUMBER || "+919746910890";
     }
 
-    const virtualNumber = process.env.EXOTEL_CALLER_ID || "09513886363";
+    const virtualNumber = process.env.EXOTEL_CALLER_ID || "04954269245";
     const dialNumber = virtualNumber.startsWith("+") 
       ? virtualNumber 
       : (virtualNumber.startsWith("0") ? `+91${virtualNumber.slice(1)}` : `+91${virtualNumber}`);
@@ -138,12 +139,37 @@ export async function POST(req: Request) {
       virtualNumber,
       dialNumber,
       qrToken: qrToken || "none",
+      mode,
       success: true,
-      message: `2-Way privacy bridge established with ${resolvedTargetName}. Ready for dialer navigation.`
+      message: `2-Way Uber-style privacy bridge established with ${resolvedTargetName}.`
     });
+
+    // If automated callback mode is requested
+    if (mode === "automated") {
+      const callResult = await initiateMaskedCall({
+        scannerNumber: cleanScanner,
+        ownerNumber: resolvedTarget,
+        callerId: virtualNumber,
+        customField: `plate:${plateNumber || 'UNKNOWN'}|qr:${qrToken || 'none'}`
+      });
+
+      return NextResponse.json({
+        success: callResult.success,
+        mode: "automated",
+        virtualNumber,
+        dialNumber,
+        scannerMasked,
+        targetMasked,
+        targetType,
+        targetName: resolvedTargetName,
+        plateNumber: plateNumber || "UNKNOWN",
+        message: callResult.message || "Exotel is dialing your phone now."
+      });
+    }
 
     return NextResponse.json({
       success: true,
+      mode: "dialer",
       virtualNumber,
       dialNumber,
       scannerMasked,
@@ -155,7 +181,7 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("[MASKED CALL API ERROR]", error);
-    const virtualNumber = process.env.EXOTEL_CALLER_ID || "09513886363";
+    const virtualNumber = process.env.EXOTEL_CALLER_ID || "04954269245";
     const dialNumber = `+91${virtualNumber.slice(1)}`;
 
     return NextResponse.json({

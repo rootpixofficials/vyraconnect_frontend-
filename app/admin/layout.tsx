@@ -43,7 +43,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-900">Vyra Admin Login</h1>
             <p className="text-slate-500 mt-2">Enter your credentials to access the dashboard.</p>
-            <p className="text-xs text-blue-500 mt-1">Hint: Use 'vyraconnectadmin' & 'vyraconnect@123'</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>

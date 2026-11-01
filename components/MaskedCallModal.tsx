@@ -59,11 +59,14 @@ export default function MaskedCallModal({
     ? `+91 ••••• ••${resolvedTargetNumber.replace(/[^0-9]/g, "").slice(-3)}`
     : "+91 ••••• ••890");
 
-  const defaultVirtual = "09513886363";
+  const defaultVirtual = "04954269245";
+  const [automatedLoading, setAutomatedLoading] = useState(false);
+  const [automatedSuccess, setAutomatedSuccess] = useState<string | null>(null);
 
   const handleStartCall = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setAutomatedSuccess(null);
 
     if (cleanScanner.length < 10) {
       setError("Please enter a valid 10-digit mobile number.");
@@ -82,15 +85,14 @@ export default function MaskedCallModal({
           targetType,
           targetName: targetName || targetLabel,
           plateNumber,
-          qrToken
+          qrToken,
+          mode: "dialer"
         })
       });
 
       const data = await res.json();
       const virtualNumber = data.virtualNumber || defaultVirtual;
-      const dialNumber = data.dialNumber || (virtualNumber.startsWith("+") 
-        ? virtualNumber 
-        : (virtualNumber.startsWith("0") ? `+91${virtualNumber.slice(1)}` : `+91${virtualNumber}`));
+      const dialNumber = data.dialNumber || `+91${virtualNumber.replace(/^0/, "")}`;
 
       const payload = {
         scannerMasked: data.scannerMasked || liveScannerMasked,
@@ -112,7 +114,7 @@ export default function MaskedCallModal({
       }
     } catch (err: any) {
       console.error("Masked call setup error:", err);
-      const dialNumber = `+91${defaultVirtual.slice(1)}`;
+      const dialNumber = `+91${defaultVirtual.replace(/^0/, "")}`;
       setCallData({
         scannerMasked: liveScannerMasked,
         targetMasked: resolvedTargetMasked,
@@ -132,8 +134,45 @@ export default function MaskedCallModal({
     }
   };
 
+  const handleAutomatedCallback = async () => {
+    if (cleanScanner.length < 10) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setAutomatedLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/call/mask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scannerNumber: scannerPhone,
+          targetNumber: resolvedTargetNumber,
+          targetType,
+          targetName: targetName || targetLabel,
+          plateNumber,
+          qrToken,
+          mode: "automated"
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAutomatedSuccess(data.message || "Exotel is dialing your phone right now from our private number (04954269245). Please answer the call!");
+      } else {
+        setError(data.message || "Could not trigger automated call. Please dial directly using the button above.");
+      }
+    } catch (err: any) {
+      setError("Network error triggering automated call. Please dial the private number directly.");
+    } finally {
+      setAutomatedLoading(false);
+    }
+  };
+
   const handleManualDial = () => {
-    const dialNum = callData?.dialNumber || `+91${defaultVirtual.slice(1)}`;
+    const dialNum = callData?.dialNumber || `+91${defaultVirtual.replace(/^0/, "")}`;
     window.location.href = `tel:${dialNum}`;
   };
 
@@ -141,6 +180,7 @@ export default function MaskedCallModal({
     setCallInitiated(false);
     setCallData(null);
     setError(null);
+    setAutomatedSuccess(null);
     setScannerPhone("");
     onClose();
   };
@@ -328,8 +368,36 @@ export default function MaskedCallModal({
               </button>
 
               <p className="text-[11px] text-gray-400">
-                Tap above to open your phone&apos;s calling app and dial securely.
+                Tap above to open your phone&apos;s calling app and dial {callData?.virtualNumber || defaultVirtual} securely.
               </p>
+            </div>
+
+            {/* Alternative Automated Callback Option */}
+            <div className="pt-2 border-t border-white/10">
+              {automatedSuccess ? (
+                <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs text-center">
+                  ✅ {automatedSuccess}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAutomatedCallback}
+                  disabled={automatedLoading}
+                  className="w-full bg-white/5 hover:bg-white/10 text-cyan-300 font-semibold py-2.5 px-4 rounded-xl border border-white/10 text-xs transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {automatedLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 border-2 border-cyan-300 border-t-transparent rounded-full animate-spin" />
+                      Triggering Automated Private Call...
+                    </span>
+                  ) : (
+                    <>
+                      <span>Need an automated callback? Click to receive call</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <button

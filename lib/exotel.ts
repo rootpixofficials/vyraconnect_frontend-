@@ -51,7 +51,7 @@ export function maskDisplayNumber(phone: string): string {
 export async function initiateMaskedCall({
   scannerNumber,
   ownerNumber = process.env.DEFAULT_OWNER_NUMBER || "+919746910890",
-  callerId = process.env.EXOTEL_CALLER_ID || "09513886363",
+  callerId = process.env.EXOTEL_CALLER_ID || "04954269245",
   customField = "vyra-qr-scan"
 }: InitiateMaskedCallParams): Promise<ExotelCallResult> {
   const accountSid = process.env.EXOTEL_ACCOUNT_SID;
@@ -75,8 +75,8 @@ export async function initiateMaskedCall({
     From: formattedFrom,
     To: formattedTo,
     CallerId: formattedCallerId,
-    TimeLimit: "300", // 5 minutes max duration
-    TimeOut: "30",    // 30 seconds ring timeout
+    TimeLimit: "90",  // 90 seconds max duration (auto-disconnect to save credits)
+    TimeOut: "25",    // 25 seconds ring timeout
     CustomField: customField
   });
 

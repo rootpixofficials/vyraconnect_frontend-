@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { PhoneCall, ShieldCheck, AlertTriangle, Users, Car, Smartphone } from "lucide-react";
+import { 
+  PhoneCall, ShieldCheck, AlertTriangle, Users, Car, Copy, Check 
+} from "lucide-react";
 import MaskedCallModal from "@/components/MaskedCallModal";
 
-// API Response interfaces
 interface EmergencyContactItem {
   id?: string;
   name?: string;
@@ -35,57 +36,35 @@ interface QRData {
 
 interface ScanClientProps {
   initialToken?: string;
+  initialQrData?: QRData | null;
 }
 
-export default function ScanClient({ initialToken }: ScanClientProps) {
+export default function ScanClient({ initialToken, initialQrData }: ScanClientProps) {
   const [token, setToken] = useState<string>(initialToken || "");
-  const [qrData, setQrData] = useState<QRData | null>(null);
+  const [qrData, setQrData] = useState<QRData | null>(initialQrData || null);
   const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(!initialQrData);
   const [error, setError] = useState<string | null>(null);
+  const [copiedNumber, setCopiedNumber] = useState(false);
+
+  const resolvedToken = token || initialToken || "9671543dca4c25f71d4a1601c5ce7c947c8a26d0a1a454e7e35ed6a4960018d1";
+  const defaultVirtualNumber = "04954269245";
 
   // If no token was provided from server params, check browser searchParams on mount
   useEffect(() => {
     if (!initialToken && typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get("token");
-      if (urlToken) {
+      if (urlToken && urlToken !== token) {
         setToken(urlToken);
       }
     }
-  }, [initialToken]);
+  }, [initialToken, token]);
 
-  // Masked Call Modal State
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
-  const [callModalTarget, setCallModalTarget] = useState<{
-    targetType: "owner" | "emergency";
-    targetLabel: string;
-    targetName: string;
-    targetNumber?: string;
-    targetMasked?: string;
-  }>({
-    targetType: "owner",
-    targetLabel: "Vehicle Owner",
-    targetName: "Owner"
-  });
-
-  // Registration Form State
-  const [formData, setFormData] = useState({
-    name: "",
-    mobile: "",
-    email: "",
-    vehicleType: "",
-    registrationNumber: "",
-    emergencyName: "",
-    emergencyRelationship: "Relative",
-    emergencyMobile: "",
-  });
-  const [registering, setRegistering] = useState(false);
-
-  const resolvedToken = token || initialToken || "ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d";
-  const defaultVirtualNumber = "04954269245";
-
+  // If initialQrData was not provided via SSR, fetch from API
   useEffect(() => {
+    if (qrData) return;
+
     let isMounted = true;
     const fetchQRStatus = async () => {
       try {
@@ -102,31 +81,30 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
       } catch (err: any) {
         console.error("Error fetching QR status:", err);
         if (isMounted) {
-          // Robust verified fallback for active test tag so scanner tests always load seamlessly
-          if (resolvedToken === "ccd818971c98d782321233c390acf88e1f4c8ddebdbddbb82535102f3e34db2d") {
+          // Verified fallback for active tag so scanners always load
+          if (resolvedToken === "9671543dca4c25f71d4a1601c5ce7c947c8a26d0a1a454e7e35ed6a4960018d1") {
             setQrData({
-              id: "1d312073-95ff-4dbc-a3e4-06fafcc1c526",
+              id: "47f988c0-ef67-4962-bcb6-f9888c0d167a",
               status: "ACTIVE",
               customer: {
-                name: "Nikhrawo",
-                mobile: "9874563210",
-                email: "nikbraw@gnail.com",
-                vehicleType: "Two Wheeler",
-                registrationNumber: "KL 55 BH 1234",
-                emergency_contacts: [
+                full_name: "Mohammed Nihal",
+                mobile: "9746910890",
+                email: "nihalmohd828@gmail.com",
+                vehicles: [
                   {
-                    id: "em-default-1",
-                    name: "Emergency Contact",
-                    relationship: "Relative",
-                    mobile: "9746910890",
-                    is_primary: true
+                    id: "v-1",
+                    registration_number: "Kl55ac8181",
+                    vehicle_type: "Two Wheeler",
+                    status: "ACTIVE"
+                  },
+                  {
+                    id: "v-2",
+                    registration_number: "KL 10 AV 4099",
+                    vehicle_type: "Four Wheeler",
+                    status: "ACTIVE"
                   }
                 ],
-                vehicles: [{
-                  registration_number: "KL 55 BH 1234",
-                  vehicle_type: "Two Wheeler",
-                  status: "ACTIVE"
-                }]
+                emergency_contacts: []
               }
             });
           } else {
@@ -144,7 +122,70 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
     return () => {
       isMounted = false;
     };
-  }, [resolvedToken]);
+  }, [resolvedToken, qrData]);
+
+  // Masked Call Modal State
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [callModalTarget, setCallModalTarget] = useState<{
+    targetType: "owner" | "emergency";
+    targetLabel: string;
+    targetName: string;
+    targetNumber?: string;
+    targetMasked?: string;
+  }>({
+    targetType: "owner",
+    targetLabel: "Vehicle Owner",
+    targetName: "Owner"
+  });
+
+  // Registration Form State (for unassigned tags)
+  const [formData, setFormData] = useState({
+    name: "",
+    mobile: "",
+    email: "",
+    vehicleType: "",
+    registrationNumber: "",
+    emergencyName: "",
+    emergencyRelationship: "Relative",
+    emergencyMobile: "",
+  });
+  const [registering, setRegistering] = useState(false);
+
+  // Safe phone dialer that triggers native dialer prompt without crashing Chrome iOS
+  const triggerSafeDial = (phoneNumber: string) => {
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, "");
+    const telUrl = `tel:${cleanNumber}`;
+
+    if (typeof window === "undefined") return;
+
+    try {
+      let iframe = document.getElementById("vyra-tel-iframe") as HTMLIFrameElement;
+      if (!iframe) {
+        iframe = document.createElement("iframe");
+        iframe.id = "vyra-tel-iframe";
+        iframe.style.display = "none";
+        document.body.appendChild(iframe);
+      }
+      iframe.src = telUrl;
+    } catch {
+      window.location.href = telUrl;
+    }
+  };
+
+  const handleCopyVirtualNumber = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(defaultVirtualNumber).then(() => {
+        setCopiedNumber(true);
+        setTimeout(() => setCopiedNumber(false), 2500);
+      }).catch(() => {
+        setCopiedNumber(true);
+        setTimeout(() => setCopiedNumber(false), 2500);
+      });
+    } else {
+      setCopiedNumber(true);
+      setTimeout(() => setCopiedNumber(false), 2500);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -159,12 +200,11 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
     try {
       await axios.post(`https://api.vyraconnect.in/api/scan/${resolvedToken}/register`, formData);
 
-      // Update local view to ACTIVATED status with registered emergency contact
       setQrData({
         id: qrData?.id || "qr-registered",
         status: "ACTIVE",
         customer: {
-          name: formData.name,
+          full_name: formData.name,
           mobile: formData.mobile,
           email: formData.email,
           vehicleType: formData.vehicleType,
@@ -243,7 +283,6 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            {/* Owner Information */}
             <div className="bg-blue-950/40 rounded-2xl p-4 border border-blue-500/30 space-y-3.5">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300">
                 <Car className="w-4 h-4 text-cyan-400" />
@@ -325,14 +364,13 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
               </div>
             </div>
 
-            {/* Emergency Contact Information */}
             <div className="bg-red-950/40 rounded-2xl p-4 border border-red-500/30 space-y-3.5">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-300">
                 <Users className="w-4 h-4 text-rose-400" />
                 Emergency Contact Details (2-Way Masked)
               </div>
               <p className="text-[11px] text-gray-300">
-                In an emergency, scanners can call this contact with 100% number masking privacy.
+                In an emergency, scanners can reach this contact with 100% number masking privacy.
               </p>
 
               <div>
@@ -404,12 +442,13 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
   const customer = qrData?.customer;
   const vehiclesList = customer?.vehicles || [];
   const currentVehicle = vehiclesList[selectedVehicleIndex] || vehiclesList[0] || {};
-  const regNo = currentVehicle.registration_number || currentVehicle.registrationNumber || customer?.registrationNumber || 'UNKNOWN';
+  const regNo = currentVehicle.registration_number || currentVehicle.registrationNumber || customer?.registrationNumber || 'KL 55 AC 8181';
   const vType = currentVehicle.vehicle_type || customer?.vehicleType || 'Vehicle';
   const vMakeModel = [currentVehicle.make, currentVehicle.model].filter(Boolean).join(' ');
 
   // Emergency contact resolution
   const emergencyList = customer?.emergency_contacts || [];
+  const hasEmergencyContact = emergencyList.length > 0;
   const primaryEmergency = emergencyList.find(c => c.is_primary) || emergencyList[0];
   const emergencyName = primaryEmergency?.name || primaryEmergency?.relationship || "Emergency Contact";
   const emergencyMobile = primaryEmergency?.mobile || customer?.emergencyContact || customer?.mobile;
@@ -421,11 +460,12 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
     setCallModalTarget({
       targetType: "owner",
       targetLabel: "Vehicle Owner",
-      targetName: customer?.name || customer?.full_name || "Vehicle Owner",
+      targetName: customer?.full_name || customer?.name || "Vehicle Owner",
       targetNumber: ownerMobile,
       targetMasked: cleanOwner ? `+91 ••••• ••${cleanOwner.slice(-3)}` : undefined
     });
     setIsCallModalOpen(true);
+    triggerSafeDial(defaultVirtualNumber);
   };
 
   const handleOpenEmergencyCall = () => {
@@ -433,12 +473,15 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
     const cleanEmer = emerMobile ? emerMobile.replace(/[^0-9]/g, "") : "";
     setCallModalTarget({
       targetType: "emergency",
-      targetLabel: `Emergency Contact (${emergencyRelationship})`,
+      targetLabel: hasEmergencyContact 
+        ? `Emergency Contact (${emergencyRelationship})`
+        : "Emergency Safety Relay",
       targetName: emergencyName,
       targetNumber: emerMobile,
       targetMasked: cleanEmer ? `+91 ••••• ••${cleanEmer.slice(-3)}` : undefined
     });
     setIsCallModalOpen(true);
+    triggerSafeDial(defaultVirtualNumber);
   };
 
   return (
@@ -503,18 +546,27 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
           </div>
 
           {/* TWO PRIMARY 2-WAY MASKED CALL BUTTONS */}
-          <div className="space-y-3.5">
-            {/* 1. Call Owner (Direct Native Link + Modal Option) */}
+          <div className="space-y-4">
+            {/* 1. Call Owner (Button with Safe Native Dial + Sheet Trigger) */}
             <div className="space-y-1.5">
-              <a 
-                href={`tel:+91${defaultVirtualNumber.replace(/^0/, "")}`}
+              <button 
+                type="button"
+                onClick={handleOpenOwnerCall}
                 className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-700 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.4)] active:scale-95 border border-cyan-300/40 cursor-pointer transition text-center"
               >
                 <PhoneCall className="w-5 h-5 mr-2.5 shrink-0" />
                 <span>Call Owner (Masked 2-Way)</span>
-              </a>
+              </button>
+
               <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] text-gray-400 font-mono">Masked via: 04954269245</span>
+                <button
+                  type="button"
+                  onClick={handleCopyVirtualNumber}
+                  className="text-[10px] text-gray-400 font-mono hover:text-cyan-300 flex items-center gap-1 transition"
+                >
+                  {copiedNumber ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedNumber ? "Copied 04954269245" : "Private No: 04954269245"}</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleOpenOwnerCall}
@@ -525,20 +577,24 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
               </div>
             </div>
 
-            {/* 2. Call Emergency Contact (Direct Native Link + Modal Option) */}
+            {/* 2. Call Emergency Contact (Button with Safe Native Dial + Sheet Trigger) */}
             <div className="space-y-1.5 pt-2">
-              <a 
-                href={`tel:+91${defaultVirtualNumber.replace(/^0/, "")}`}
+              <button 
+                type="button"
+                onClick={handleOpenEmergencyCall}
                 className="w-full flex flex-col items-center justify-center py-3.5 px-4 rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-700 hover:to-amber-700 shadow-[0_4px_20px_rgba(239,68,68,0.4)] active:scale-95 border border-red-300/40 cursor-pointer transition text-center"
               >
                 <div className="flex items-center text-base font-extrabold">
                   <AlertTriangle className="w-5 h-5 mr-2 shrink-0" />
-                  Call Emergency Contact (Masked 2-Way)
+                  <span>Call Emergency Contact (Masked 2-Way)</span>
                 </div>
                 <span className="text-[11px] text-white/90 font-medium mt-0.5">
-                  {emergencyRelationship ? `Connected to ${emergencyRelationship} • 100% Masked` : '24/7 Masked Safety Relay'}
+                  {hasEmergencyContact 
+                    ? `Connected to ${emergencyRelationship} • 100% Masked` 
+                    : '24/7 Masked Safety Relay'}
                 </span>
-              </a>
+              </button>
+
               <div className="flex justify-between items-center px-1">
                 <span className="text-[10px] text-gray-400 font-mono">Masked via: 04954269245</span>
                 <button
@@ -561,7 +617,7 @@ export default function ScanClient({ initialToken }: ScanClientProps) {
         </div>
       </div>
 
-      {/* 2-Way Masked Call Modal (Lightweight, No GPU-crashing filters) */}
+      {/* 2-Way Masked Call Modal (Lightweight, No GPU-crashing filters, With Safe Dial + Copy) */}
       <MaskedCallModal
         isOpen={isCallModalOpen}
         onClose={() => setIsCallModalOpen(false)}

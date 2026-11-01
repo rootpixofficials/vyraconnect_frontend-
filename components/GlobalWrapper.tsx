@@ -13,6 +13,7 @@ export default function GlobalWrapper({
 }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
+  const isScan = pathname?.startsWith('/scan');
 
   if (isAdmin) {
     return <div className="flex-grow">{children}</div>;
@@ -24,7 +25,7 @@ export default function GlobalWrapper({
       <div className="flex-grow pt-24">
         {children}
       </div>
-      <FloatingContact />
+      {!isScan && <FloatingContact />}
       {footer}
     </>
   );

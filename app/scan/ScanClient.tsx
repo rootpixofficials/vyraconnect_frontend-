@@ -454,9 +454,34 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const emergencyMobile = primaryEmergency?.mobile || customer?.emergencyContact || customer?.mobile;
   const emergencyRelationship = primaryEmergency?.relationship || "Relative";
 
+  // Pre-warms the backend router so Exotel dials the target on the very 1st ring
+  const primeBackend = (targetNum?: string, targetT: 'owner' | 'emergency' = 'owner', targetN?: string) => {
+    if (!targetNum) return;
+    try {
+      const payload = JSON.stringify({
+        token: resolvedToken,
+        targetNumber: targetNum,
+        targetType: targetT,
+        targetName: targetN || (targetT === 'owner' ? 'Vehicle Owner' : 'Emergency Contact'),
+        plateNumber: regNo
+      });
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        navigator.sendBeacon('https://api.vyraconnect.in/api/exotel/prime', new Blob([payload], { type: 'application/json' }));
+      } else {
+        fetch('https://api.vyraconnect.in/api/exotel/prime', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
+    } catch {}
+  };
+
   const handleOpenOwnerCall = () => {
     const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
     const cleanOwner = ownerMobile ? ownerMobile.replace(/[^0-9]/g, "") : "";
+    primeBackend(ownerMobile, 'owner', customer?.full_name || customer?.name || "Vehicle Owner");
     setCallModalTarget({
       targetType: "owner",
       targetLabel: "Vehicle Owner",
@@ -471,6 +496,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const handleOpenEmergencyCall = () => {
     const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
     const cleanEmer = emerMobile ? emerMobile.replace(/[^0-9]/g, "") : "";
+    primeBackend(emerMobile, 'emergency', emergencyName);
     setCallModalTarget({
       targetType: "emergency",
       targetLabel: hasEmergencyContact 

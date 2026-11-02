@@ -447,80 +447,29 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
     } catch {}
   };
 
-  // 2-Step Scanner Calling Flow State
-  const [callingStep, setCallingStep] = useState<1 | 2>(1);
-  const [selectedTarget, setSelectedTarget] = useState<"owner" | "emergency">("owner");
-  const [scannerPhone, setScannerPhone] = useState("");
-  const [initiatingCall, setInitiatingCall] = useState(false);
-  const [callStatusMessage, setCallStatusMessage] = useState<string | null>(null);
-  const [callErrorMessage, setCallErrorMessage] = useState<string | null>(null);
-  const [callSuccessData, setCallSuccessData] = useState<{
-    virtualNumber: string;
-    dialNumber: string;
-    scannerMasked: string;
-    targetMasked: string;
-  } | null>(null);
-
   const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
   const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
 
-  const handleExecuteCall = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanScanner = scannerPhone.replace(/[^0-9]/g, "");
-    if (cleanScanner.length < 10) {
-      setCallErrorMessage("Please enter a valid 10-digit mobile number.");
-      return;
-    }
+  // Direct 1-Tap Masked Call State (Option 1: No Typing Required)
+  const [activeCallTarget, setActiveCallTarget] = useState<"owner" | "emergency" | null>(null);
+  const [activeCallMessage, setActiveCallMessage] = useState<string | null>(null);
 
-    setCallErrorMessage(null);
-    setInitiatingCall(true);
-
-    const isEmergency = selectedTarget === "emergency";
+  const handleDirect1TapCall = (targetType: "owner" | "emergency") => {
+    const isEmergency = targetType === "emergency";
     const targetMobile = isEmergency ? emerMobile : ownerMobile;
     const targetName = isEmergency ? emergencyName : (customer?.full_name || customer?.name || "Vehicle Owner");
 
-    // 1. Immediately register session in background so Exotel bridges to owner in 5ms
-    try {
-      const sessionPayload = JSON.stringify({
-        scannerNumber: cleanScanner,
-        targetNumber: targetMobile,
-        targetType: selectedTarget,
-        targetName,
-        plateNumber: regNo,
-        qrToken: resolvedToken,
-        mode: "dialer"
-      });
+    // 1. Prime backend router in memory immediately (0ms lookup for Exotel)
+    primeBackend(targetMobile, targetType, targetName);
 
-      // Send to both Next API and Shared Backend for 100% redundancy
-      fetch("/api/call/mask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: sessionPayload,
-        keepalive: true
-      }).catch(() => {});
-
-      if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-        navigator.sendBeacon("https://api.vyraconnect.in/api/exotel/session", new Blob([sessionPayload], { type: "application/json" }));
-      } else {
-        fetch("https://api.vyraconnect.in/api/exotel/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: sessionPayload,
-          keepalive: true
-        }).catch(() => {});
-      }
-    } catch (e) {
-      console.warn("Session sync error:", e);
-    }
-
-    // 2. Open native phone dialer synchronously (zero browser delay or popup blockage)
+    // 2. Open native phone dialer synchronously (never blocked by mobile browser security)
     triggerSafeDial(defaultVirtualNumber);
 
-    // 3. Update the UI state
-    setCallStatusMessage(
-      `Connecting to ${isEmergency ? "Emergency Contact" : "Vehicle Owner"} via private line ${defaultVirtualNumber}. Only the vehicle owner's phone will ring.`
+    // 3. Display active calling feedback
+    setActiveCallTarget(targetType);
+    setActiveCallMessage(
+      `Connecting to ${isEmergency ? "Emergency Contact" : "Vehicle Owner"} via private line ${defaultVirtualNumber}. Only the receiver's phone is ringing.`
     );
-    setInitiatingCall(false);
   };
 
   return (
@@ -539,7 +488,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
 
         <div className="p-6 sm:p-7">
           {/* Multi-vehicle switcher (if customer has multiple vehicles) */}
-          {vehiclesList.length > 1 && callingStep === 1 && (
+          {vehiclesList.length > 1 && (
             <div className="mb-4 p-2.5 bg-blue-950/50 border border-blue-500/30 rounded-2xl text-center">
               <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300 mb-1.5">
                 Multiple Vehicles Under This Tag ({vehiclesList.length})
@@ -564,7 +513,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
           )}
 
           {/* Vehicle Identified Badge */}
-          <div className="text-center mb-5 bg-black/40 rounded-2xl py-4 px-4 border border-white/10">
+          <div className="text-center mb-6 bg-black/40 rounded-2xl py-4 px-4 border border-white/10">
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Vehicle Identified</p>
             <div className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider font-mono">
               {regNo}
@@ -581,174 +530,83 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
             </div>
           </div>
 
-          {/* STEP 1: JUST ASK CALL OWNER OR EMERGENCY */}
-          {callingStep === 1 && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h2 className="text-lg font-bold text-white">Who would you like to call?</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Select an option to connect privately</p>
-              </div>
-
-              <div className="space-y-3 pt-1">
-                {/* Button 1: Call Owner */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedTarget("owner");
-                    primeBackend(ownerMobile, "owner", customer?.full_name || "Vehicle Owner");
-                    setCallingStep(2);
-                  }}
-                  className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.35)] active:scale-98 border border-cyan-300/40 cursor-pointer transition text-center"
-                >
-                  <PhoneCall className="w-5 h-5 mr-2.5 shrink-0" />
-                  <span>Call Owner</span>
-                </button>
-
-                {/* Button 2: Call Emergency Contact */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedTarget("emergency");
-                    primeBackend(emerMobile, "emergency", emergencyName);
-                    setCallingStep(2);
-                  }}
-                  className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-600 shadow-[0_4px_20px_rgba(239,68,68,0.35)] active:scale-98 border border-red-300/40 cursor-pointer transition text-center"
-                >
-                  <AlertTriangle className="w-5 h-5 mr-2.5 shrink-0" />
-                  <span>Call Emergency Contact</span>
-                </button>
-              </div>
-
-              <div className="pt-4 border-t border-white/10 text-center">
-                <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                  100% 2-Way Phone Masking &bull; Real Numbers Never Revealed
-                </p>
-              </div>
+          {/* Direct 1-Tap Call Options (Option 1: Zero Typing Required) */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-white">Who would you like to call?</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Instant 1-Tap Masked Call &bull; No typing required</p>
             </div>
-          )}
 
-          {/* STEP 2: ENTER SCANNED PERSON NUMBER TYPING SPACE + CALL BUTTON ONLY */}
-          {callingStep === 2 && (
-            <div className="space-y-4">
-              {/* Clean Back + Title */}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCallingStep(1);
-                    setCallStatusMessage(null);
-                    setCallErrorMessage(null);
-                  }}
-                  className="flex items-center text-xs font-semibold text-gray-400 hover:text-cyan-300 transition py-1"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-1" />
-                  Back
-                </button>
-                <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
-                  selectedTarget === "emergency" 
-                    ? "bg-red-950 text-red-300 border border-red-500/30" 
-                    : "bg-blue-950 text-cyan-300 border border-blue-500/30"
-                }`}>
-                  Calling {selectedTarget === "emergency" ? "Emergency Contact" : "Vehicle Owner"}
-                </span>
-              </div>
-
-              {/* Phone Number Input Form */}
-              <form onSubmit={handleExecuteCall} className="space-y-4 pt-1">
-                <div>
-                  <label htmlFor="scannerNumber" className="block text-xs font-semibold text-gray-300 mb-2 text-center">
-                    Enter your mobile number to connect:
-                  </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-4 text-sm font-bold font-mono text-cyan-400 select-none">
-                      +91
-                    </span>
-                    <input
-                      id="scannerNumber"
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      autoFocus
-                      required
-                      value={scannerPhone}
-                      onChange={(e) => setScannerPhone(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
-                      placeholder="Enter 10-digit number"
-                      className="w-full pl-14 pr-4 py-3.5 rounded-2xl bg-black/50 border border-white/20 focus:border-cyan-400 text-white font-mono text-lg tracking-wider placeholder:text-gray-500 outline-none text-center"
-                    />
+            <div className="space-y-3 pt-1">
+              {/* Button 1: Call Owner */}
+              <button
+                type="button"
+                onClick={() => handleDirect1TapCall("owner")}
+                className="w-full flex items-center justify-between py-4 px-5 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.35)] active:scale-98 border border-cyan-300/40 cursor-pointer transition text-left"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mr-3 shrink-0">
+                    <PhoneCall className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-[11px] text-gray-400 text-center mt-1.5">
-                    Your number will be masked so the owner cannot see it.
-                  </p>
+                  <div>
+                    <div className="text-base font-extrabold text-white">Call Owner</div>
+                    <div className="text-[11px] text-cyan-100 font-medium">Connects immediately on 1st ring</div>
+                  </div>
                 </div>
+                <span className="text-xs bg-white/20 px-2.5 py-1 rounded-lg text-white font-mono font-bold">1-Tap &rarr;</span>
+              </button>
 
-                {/* Error Notice */}
-                {callErrorMessage && (
-                  <div className="p-3 bg-red-950/70 border border-red-500/40 rounded-xl text-center space-y-2">
-                    <p className="text-xs text-red-300">{callErrorMessage}</p>
-                    <button
-                      type="button"
-                      onClick={() => triggerSafeDial(defaultVirtualNumber)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>Tap to Call {defaultVirtualNumber} Directly</span>
-                    </button>
+              {/* Button 2: Call Emergency Contact */}
+              <button
+                type="button"
+                onClick={() => handleDirect1TapCall("emergency")}
+                className="w-full flex items-center justify-between py-4 px-5 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-500 shadow-[0_4px_20px_rgba(239,68,68,0.35)] active:scale-98 border border-red-300/40 cursor-pointer transition text-left"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mr-3 shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-white" />
                   </div>
-                )}
-
-                {/* Active Calling State */}
-                {callStatusMessage && (
-                  <div className="p-4 bg-emerald-950/80 border border-emerald-500/40 rounded-2xl text-center space-y-3">
-                    <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                      <span>Ringing {selectedTarget === "emergency" ? "Emergency Contact" : "Vehicle Owner"}...</span>
-                    </div>
-                    <p className="text-xs text-emerald-200 leading-relaxed">
-                      Calling private line <strong>{defaultVirtualNumber}</strong>. Only the vehicle owner&apos;s phone is ringing. Your real phone number is 100% hidden.
-                    </p>
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => triggerSafeDial(defaultVirtualNumber)}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition shadow-lg cursor-pointer active:scale-98"
-                      >
-                        <PhoneCall className="w-4 h-4" />
-                        <span>Tap to Call {defaultVirtualNumber} Again</span>
-                      </button>
+                  <div>
+                    <div className="text-base font-extrabold text-white">Call Emergency Contact</div>
+                    <div className="text-[11px] text-rose-100 font-medium">
+                      {hasEmergencyContact ? `Connected to ${emergencyRelationship}` : "24/7 Masked Safety Relay"}
                     </div>
                   </div>
-                )}
-
-                {/* Call Button */}
-                {!callStatusMessage && (
-                  <button
-                    type="submit"
-                    disabled={initiatingCall || scannerPhone.replace(/[^0-9]/g, "").length < 10}
-                    className={`w-full flex items-center justify-center py-4 px-5 rounded-2xl text-base font-extrabold text-white transition active:scale-98 shadow-lg cursor-pointer ${
-                      selectedTarget === "emergency"
-                        ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-500 shadow-red-500/30 border border-red-400/40"
-                        : "bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-cyan-500/30 border border-cyan-400/40"
-                    } ${
-                      initiatingCall || scannerPhone.replace(/[^0-9]/g, "").length < 10
-                        ? "opacity-60 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    <PhoneCall className="w-5 h-5 mr-2" />
-                    <span>Call {selectedTarget === "emergency" ? "Emergency Contact" : "Owner"}</span>
-                  </button>
-                )}
-              </form>
-
-              <div className="pt-3 border-t border-white/10 text-center">
-                <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                  100% Private Call &bull; Both Numbers Masked
-                </p>
-              </div>
+                </div>
+                <span className="text-xs bg-white/20 px-2.5 py-1 rounded-lg text-white font-mono font-bold">1-Tap &rarr;</span>
+              </button>
             </div>
-          )}
+
+            {/* Active Calling Status Feedback Card */}
+            {activeCallMessage && (
+              <div className="mt-4 p-4 bg-emerald-950/80 border border-emerald-500/40 rounded-2xl text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Ringing {activeCallTarget === "emergency" ? "Emergency Contact" : "Vehicle Owner"}...</span>
+                </div>
+                <p className="text-xs text-emerald-200 leading-relaxed">
+                  Calling private line <strong>{defaultVirtualNumber}</strong>. Only the receiver&apos;s phone is ringing. Your real phone number is 100% hidden.
+                </p>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => triggerSafeDial(defaultVirtualNumber)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-lg cursor-pointer active:scale-98"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Tap to Call {defaultVirtualNumber} Again</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-white/10 text-center">
+              <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                100% 2-Way Phone Masking &bull; Real Numbers Never Revealed
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

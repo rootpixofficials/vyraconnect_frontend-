@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { 
-  PhoneCall, ShieldCheck, AlertTriangle, Users, Car, Copy, Check 
+  PhoneCall, ShieldCheck, AlertTriangle, Users, Car, ArrowLeft, Loader2, Phone
 } from "lucide-react";
-import MaskedCallModal from "@/components/MaskedCallModal";
 
 interface EmergencyContactItem {
   id?: string;
@@ -45,7 +44,6 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
   const [loading, setLoading] = useState<boolean>(!initialQrData);
   const [error, setError] = useState<string | null>(null);
-  const [copiedNumber, setCopiedNumber] = useState(false);
 
   const resolvedToken = token || initialToken || "9671543dca4c25f71d4a1601c5ce7c947c8a26d0a1a454e7e35ed6a4960018d1";
   const defaultVirtualNumber = "04954269245";
@@ -124,20 +122,6 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
     };
   }, [resolvedToken, qrData]);
 
-  // Masked Call Modal State
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
-  const [callModalTarget, setCallModalTarget] = useState<{
-    targetType: "owner" | "emergency";
-    targetLabel: string;
-    targetName: string;
-    targetNumber?: string;
-    targetMasked?: string;
-  }>({
-    targetType: "owner",
-    targetLabel: "Vehicle Owner",
-    targetName: "Owner"
-  });
-
   // Registration Form State (for unassigned tags)
   const [formData, setFormData] = useState({
     name: "",
@@ -169,21 +153,6 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
       iframe.src = telUrl;
     } catch {
       window.location.href = telUrl;
-    }
-  };
-
-  const handleCopyVirtualNumber = () => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(defaultVirtualNumber).then(() => {
-        setCopiedNumber(true);
-        setTimeout(() => setCopiedNumber(false), 2500);
-      }).catch(() => {
-        setCopiedNumber(true);
-        setTimeout(() => setCopiedNumber(false), 2500);
-      });
-    } else {
-      setCopiedNumber(true);
-      setTimeout(() => setCopiedNumber(false), 2500);
     }
   };
 
@@ -478,36 +447,77 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
     } catch {}
   };
 
-  const handleOpenOwnerCall = () => {
-    const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
-    const cleanOwner = ownerMobile ? ownerMobile.replace(/[^0-9]/g, "") : "";
-    primeBackend(ownerMobile, 'owner', customer?.full_name || customer?.name || "Vehicle Owner");
-    setCallModalTarget({
-      targetType: "owner",
-      targetLabel: "Vehicle Owner",
-      targetName: customer?.full_name || customer?.name || "Vehicle Owner",
-      targetNumber: ownerMobile,
-      targetMasked: cleanOwner ? `+91 ••••• ••${cleanOwner.slice(-3)}` : undefined
-    });
-    setIsCallModalOpen(true);
-    triggerSafeDial(defaultVirtualNumber);
-  };
+  // 2-Step Scanner Calling Flow State
+  const [callingStep, setCallingStep] = useState<1 | 2>(1);
+  const [selectedTarget, setSelectedTarget] = useState<"owner" | "emergency">("owner");
+  const [scannerPhone, setScannerPhone] = useState("");
+  const [initiatingCall, setInitiatingCall] = useState(false);
+  const [callStatusMessage, setCallStatusMessage] = useState<string | null>(null);
+  const [callErrorMessage, setCallErrorMessage] = useState<string | null>(null);
+  const [callSuccessData, setCallSuccessData] = useState<{
+    virtualNumber: string;
+    dialNumber: string;
+    scannerMasked: string;
+    targetMasked: string;
+  } | null>(null);
 
-  const handleOpenEmergencyCall = () => {
-    const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
-    const cleanEmer = emerMobile ? emerMobile.replace(/[^0-9]/g, "") : "";
-    primeBackend(emerMobile, 'emergency', emergencyName);
-    setCallModalTarget({
-      targetType: "emergency",
-      targetLabel: hasEmergencyContact 
-        ? `Emergency Contact (${emergencyRelationship})`
-        : "Emergency Safety Relay",
-      targetName: emergencyName,
-      targetNumber: emerMobile,
-      targetMasked: cleanEmer ? `+91 ••••• ••${cleanEmer.slice(-3)}` : undefined
-    });
-    setIsCallModalOpen(true);
-    triggerSafeDial(defaultVirtualNumber);
+  const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
+  const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
+
+  const handleExecuteCall = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanScanner = scannerPhone.replace(/[^0-9]/g, "");
+    if (cleanScanner.length < 10) {
+      setCallErrorMessage("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setInitiatingCall(true);
+    setCallErrorMessage(null);
+    setCallStatusMessage(null);
+
+    const isEmergency = selectedTarget === "emergency";
+    const targetMobile = isEmergency ? emerMobile : ownerMobile;
+    const targetName = isEmergency ? emergencyName : (customer?.full_name || customer?.name || "Vehicle Owner");
+
+    try {
+      const res = await fetch("/api/call/mask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scannerNumber: cleanScanner,
+          targetNumber: targetMobile,
+          targetType: selectedTarget,
+          targetName,
+          plateNumber: regNo,
+          qrToken: resolvedToken,
+          mode: "automated"
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok && !data.success) {
+        throw new Error(data.error || data.message || "Failed to initiate automated call.");
+      }
+
+      setCallSuccessData({
+        virtualNumber: data.virtualNumber || defaultVirtualNumber,
+        dialNumber: data.dialNumber || `+91${(data.virtualNumber || defaultVirtualNumber).replace(/^0/, "")}`,
+        scannerMasked: data.scannerMasked || `+91 ••••• ••${cleanScanner.slice(-3)}`,
+        targetMasked: data.targetMasked || "+91 ••••• ••••"
+      });
+
+      setCallStatusMessage(
+        `Exotel is calling your number now (+91 ••••• ••${cleanScanner.slice(-3)}) from ${data.virtualNumber || defaultVirtualNumber}! Please answer to connect.`
+      );
+    } catch (err: any) {
+      console.error("Masked call error:", err);
+      setCallErrorMessage(
+        err.message || "Could not connect automatic call. Please tap the direct call button below."
+      );
+    } finally {
+      setInitiatingCall(false);
+    }
   };
 
   return (
@@ -515,23 +525,20 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
       <div className="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         
         {/* Header Banner */}
-        <div className="bg-gradient-to-r from-blue-700 via-cyan-700 to-blue-900 py-8 px-4 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-700 via-cyan-700 to-blue-900 py-6 px-4 text-center relative overflow-hidden">
           <div className="relative z-10">
             <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
               Vyra<span className="text-cyan-300">Connect</span>
             </h1>
-            <div className="mt-4 bg-red-500/90 inline-flex items-center px-4 py-1.5 rounded-full text-white text-xs font-bold tracking-widest border border-red-400/50 shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse mr-2"></span>
-              EMERGENCY SCANNER PROFILE
-            </div>
+            <p className="text-xs text-blue-100/90 font-medium mt-1">Smart Vehicle Safety &amp; 2-Way Privacy Relay</p>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8">
-          {/* Multi-vehicle switcher */}
-          {vehiclesList.length > 1 && (
-            <div className="mb-6 p-3 bg-blue-950/50 border border-blue-500/30 rounded-2xl text-center">
-              <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300 mb-2">
+        <div className="p-6 sm:p-7">
+          {/* Multi-vehicle switcher (if customer has multiple vehicles) */}
+          {vehiclesList.length > 1 && callingStep === 1 && (
+            <div className="mb-4 p-2.5 bg-blue-950/50 border border-blue-500/30 rounded-2xl text-center">
+              <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300 mb-1.5">
                 Multiple Vehicles Under This Tag ({vehiclesList.length})
               </p>
               <div className="flex flex-wrap gap-1.5 justify-center">
@@ -540,7 +547,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                     key={v.id || idx}
                     type="button"
                     onClick={() => setSelectedVehicleIndex(idx)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition ${
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border transition ${
                       selectedVehicleIndex === idx
                         ? 'bg-blue-600 text-white border-blue-400 shadow-md scale-105'
                         : 'bg-black/30 text-gray-300 border-white/10 hover:border-cyan-400'
@@ -553,108 +560,201 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
             </div>
           )}
 
-          {/* Vehicle Identified Card */}
-          <div className="text-center mb-6 bg-black/40 rounded-2xl py-6 px-4 border border-white/10">
-            <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Vehicle Identified</h2>
-            <div className="text-3xl font-black text-white uppercase tracking-wide font-mono">
+          {/* Vehicle Identified Badge */}
+          <div className="text-center mb-5 bg-black/40 rounded-2xl py-4 px-4 border border-white/10">
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Vehicle Identified</p>
+            <div className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider font-mono">
               {regNo}
             </div>
-            <div className="flex items-center justify-center gap-2 mt-2.5">
-              <span className="text-cyan-300 capitalize font-semibold text-xs bg-cyan-950/60 px-3.5 py-1 rounded-full border border-cyan-500/30">
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-cyan-300 capitalize font-semibold text-xs bg-cyan-950/60 px-3 py-0.5 rounded-full border border-cyan-500/30">
                 {vType}
               </span>
               {vMakeModel && (
-                <span className="text-gray-300 font-medium text-xs bg-white/5 px-3.5 py-1 rounded-full border border-white/10">
+                <span className="text-gray-300 font-medium text-xs bg-white/5 px-3 py-0.5 rounded-full border border-white/10">
                   {vMakeModel}
                 </span>
               )}
             </div>
           </div>
 
-          {/* TWO PRIMARY 2-WAY MASKED CALL BUTTONS */}
-          <div className="space-y-4">
-            {/* 1. Call Owner (Button with Safe Native Dial + Sheet Trigger) */}
-            <div className="space-y-1.5">
-              <button 
-                type="button"
-                onClick={handleOpenOwnerCall}
-                className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-700 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.4)] active:scale-95 border border-cyan-300/40 cursor-pointer transition text-center"
-              >
-                <PhoneCall className="w-5 h-5 mr-2.5 shrink-0" />
-                <span>Call Owner (Masked 2-Way)</span>
-              </button>
+          {/* STEP 1: JUST ASK CALL OWNER OR EMERGENCY */}
+          {callingStep === 1 && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h2 className="text-lg font-bold text-white">Who would you like to call?</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Select an option to connect privately</p>
+              </div>
 
-              <div className="flex justify-between items-center px-1">
+              <div className="space-y-3 pt-1">
+                {/* Button 1: Call Owner */}
                 <button
                   type="button"
-                  onClick={handleCopyVirtualNumber}
-                  className="text-[10px] text-gray-400 font-mono hover:text-cyan-300 flex items-center gap-1 transition"
+                  onClick={() => {
+                    setSelectedTarget("owner");
+                    primeBackend(ownerMobile, "owner", customer?.full_name || "Vehicle Owner");
+                    setCallingStep(2);
+                  }}
+                  className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.35)] active:scale-98 border border-cyan-300/40 cursor-pointer transition text-center"
                 >
-                  {copiedNumber ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedNumber ? "Copied 04954269245" : "Private No: 04954269245"}</span>
+                  <PhoneCall className="w-5 h-5 mr-2.5 shrink-0" />
+                  <span>Call Owner</span>
                 </button>
+
+                {/* Button 2: Call Emergency Contact */}
                 <button
                   type="button"
-                  onClick={handleOpenOwnerCall}
-                  className="text-[11px] text-cyan-400 hover:underline font-semibold"
+                  onClick={() => {
+                    setSelectedTarget("emergency");
+                    primeBackend(emerMobile, "emergency", emergencyName);
+                    setCallingStep(2);
+                  }}
+                  className="w-full flex items-center justify-center py-4 px-4 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-600 shadow-[0_4px_20px_rgba(239,68,68,0.35)] active:scale-98 border border-red-300/40 cursor-pointer transition text-center"
                 >
-                  Options / Automated Call &rarr;
+                  <AlertTriangle className="w-5 h-5 mr-2.5 shrink-0" />
+                  <span>Call Emergency Contact</span>
                 </button>
               </div>
-            </div>
 
-            {/* 2. Call Emergency Contact (Button with Safe Native Dial + Sheet Trigger) */}
-            <div className="space-y-1.5 pt-2">
-              <button 
-                type="button"
-                onClick={handleOpenEmergencyCall}
-                className="w-full flex flex-col items-center justify-center py-3.5 px-4 rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-700 hover:to-amber-700 shadow-[0_4px_20px_rgba(239,68,68,0.4)] active:scale-95 border border-red-300/40 cursor-pointer transition text-center"
-              >
-                <div className="flex items-center text-base font-extrabold">
-                  <AlertTriangle className="w-5 h-5 mr-2 shrink-0" />
-                  <span>Call Emergency Contact (Masked 2-Way)</span>
-                </div>
-                <span className="text-[11px] text-white/90 font-medium mt-0.5">
-                  {hasEmergencyContact 
-                    ? `Connected to ${emergencyRelationship} • 100% Masked` 
-                    : '24/7 Masked Safety Relay'}
+              <div className="pt-4 border-t border-white/10 text-center">
+                <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  100% 2-Way Phone Masking &bull; Real Numbers Never Revealed
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: ENTER SCANNED PERSON NUMBER TYPING SPACE + CALL BUTTON ONLY */}
+          {callingStep === 2 && (
+            <div className="space-y-4">
+              {/* Clean Back + Title */}
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCallingStep(1);
+                    setCallStatusMessage(null);
+                    setCallErrorMessage(null);
+                  }}
+                  className="flex items-center text-xs font-semibold text-gray-400 hover:text-cyan-300 transition py-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </button>
+                <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                  selectedTarget === "emergency" 
+                    ? "bg-red-950 text-red-300 border border-red-500/30" 
+                    : "bg-blue-950 text-cyan-300 border border-blue-500/30"
+                }`}>
+                  Calling {selectedTarget === "emergency" ? "Emergency Contact" : "Vehicle Owner"}
                 </span>
-              </button>
+              </div>
 
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] text-gray-400 font-mono">Masked via: 04954269245</span>
-                <button
-                  type="button"
-                  onClick={handleOpenEmergencyCall}
-                  className="text-[11px] text-rose-400 hover:underline font-semibold"
-                >
-                  Options / Automated Call &rarr;
-                </button>
+              {/* Phone Number Input Form */}
+              <form onSubmit={handleExecuteCall} className="space-y-4 pt-1">
+                <div>
+                  <label htmlFor="scannerNumber" className="block text-xs font-semibold text-gray-300 mb-2 text-center">
+                    Enter your mobile number to connect:
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-sm font-bold font-mono text-cyan-400 select-none">
+                      +91
+                    </span>
+                    <input
+                      id="scannerNumber"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      autoFocus
+                      required
+                      value={scannerPhone}
+                      onChange={(e) => setScannerPhone(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+                      placeholder="Enter 10-digit number"
+                      className="w-full pl-14 pr-4 py-3.5 rounded-2xl bg-black/50 border border-white/20 focus:border-cyan-400 text-white font-mono text-lg tracking-wider placeholder:text-gray-500 outline-none text-center"
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 text-center mt-1.5">
+                    Your number will be masked so the owner cannot see it.
+                  </p>
+                </div>
+
+                {/* Error Notice */}
+                {callErrorMessage && (
+                  <div className="p-3 bg-red-950/70 border border-red-500/40 rounded-xl text-center space-y-2">
+                    <p className="text-xs text-red-300">{callErrorMessage}</p>
+                    <button
+                      type="button"
+                      onClick={() => triggerSafeDial(defaultVirtualNumber)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>Tap to Call {defaultVirtualNumber} Directly</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Success Calling State */}
+                {callStatusMessage && (
+                  <div className="p-4 bg-emerald-950/80 border border-emerald-500/40 rounded-2xl text-center space-y-3">
+                    <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                      <span>Call Initiated!</span>
+                    </div>
+                    <p className="text-xs text-emerald-200 leading-relaxed">{callStatusMessage}</p>
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => triggerSafeDial(callSuccessData?.virtualNumber || defaultVirtualNumber)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-md"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>Didn&apos;t get the call? Tap to dial directly</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Call Button */}
+                {!callStatusMessage && (
+                  <button
+                    type="submit"
+                    disabled={initiatingCall || scannerPhone.replace(/[^0-9]/g, "").length < 10}
+                    className={`w-full flex items-center justify-center py-4 px-5 rounded-2xl text-base font-extrabold text-white transition active:scale-98 shadow-lg cursor-pointer ${
+                      selectedTarget === "emergency"
+                        ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-500 shadow-red-500/30 border border-red-400/40"
+                        : "bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-cyan-500/30 border border-cyan-400/40"
+                    } ${
+                      initiatingCall || scannerPhone.replace(/[^0-9]/g, "").length < 10
+                        ? "opacity-60 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {initiatingCall ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <span>Connecting Call...</span>
+                      </>
+                    ) : (
+                      <>
+                        <PhoneCall className="w-5 h-5 mr-2" />
+                        <span>Call Now</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </form>
+
+              <div className="pt-3 border-t border-white/10 text-center">
+                <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  100% Private Call &bull; Both Numbers Masked
+                </p>
               </div>
             </div>
-          </div>
-
-          <div className="mt-8 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-gray-400 font-medium flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 mr-1.5 text-cyan-400" />
-              100% 2-Way Phone Masking &bull; Neither Party Sees Real Numbers
-            </p>
-          </div>
+          )}
         </div>
       </div>
-
-      {/* 2-Way Masked Call Modal (Lightweight, No GPU-crashing filters, With Safe Dial + Copy) */}
-      <MaskedCallModal
-        isOpen={isCallModalOpen}
-        onClose={() => setIsCallModalOpen(false)}
-        plateNumber={regNo}
-        targetType={callModalTarget.targetType}
-        targetLabel={callModalTarget.targetLabel}
-        targetName={callModalTarget.targetName}
-        targetNumber={callModalTarget.targetNumber}
-        targetMasked={callModalTarget.targetMasked}
-        qrToken={resolvedToken}
-      />
     </div>
   );
 }

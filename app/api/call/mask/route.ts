@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       targetName = "Vehicle Owner",
       plateNumber, 
       qrToken,
-      mode = "dialer" // "dialer" (Uber direct relay) or "automated" (click-to-call)
+      mode = "automated" // Default to automated click-to-call for instant connection
     } = body;
 
     const cleanScanner = (scannerNumber || "").replace(/[^0-9]/g, "");
@@ -163,8 +163,9 @@ export async function POST(req: Request) {
         targetType,
         targetName: resolvedTargetName,
         plateNumber: plateNumber || "UNKNOWN",
+        error: !callResult.success ? callResult.message : undefined,
         message: callResult.message || "Exotel is dialing your phone now."
-      });
+      }, { status: callResult.success ? 200 : 400 });
     }
 
     return NextResponse.json({

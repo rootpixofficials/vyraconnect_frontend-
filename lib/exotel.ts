@@ -75,8 +75,9 @@ export async function initiateMaskedCall({
     From: formattedFrom,
     To: formattedTo,
     CallerId: formattedCallerId,
+    CallType: "trans",
     TimeLimit: "90",  // 90 seconds max duration (auto-disconnect to save credits)
-    TimeOut: "25",    // 25 seconds ring timeout
+    TimeOut: "45",    // 45 seconds ring timeout
     CustomField: customField
   });
 

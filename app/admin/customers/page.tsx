@@ -2,15 +2,39 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { 
+  Users, Search, Filter, Plus, Edit2, Trash2, Eye, ShieldAlert, 
+  Phone, Mail, Car, AlertTriangle, Check, Copy, UserCheck, X,
+  LayoutGrid, Table as TableIcon, HeartHandshake
+} from "lucide-react";
+
+interface EmergencyContactItem {
+  id?: string;
+  name: string;
+  relationship: string;
+  mobile: string;
+  is_primary?: boolean;
+}
+
+interface VehicleItem {
+  id?: string;
+  registration_number: string;
+  vehicle_type?: string;
+  make?: string;
+  model?: string;
+}
 
 interface Customer {
   id: string;
+  customer_code?: string;
   full_name?: string;
   name?: string;
   mobile: string;
-  email: string;
+  email?: string;
   status: string;
   created_at?: string;
+  emergency_contacts?: EmergencyContactItem[];
+  vehicles?: VehicleItem[];
 }
 
 export default function CustomersPage() {
@@ -18,15 +42,21 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "BLOCKED">("ALL");
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: "",
     mobile: "",
-    email: ""
+    email: "",
+    emergencyName: "",
+    emergencyMobile: "",
+    emergencyRelationship: "Relative",
+    emergencyContactId: ""
   });
 
   useEffect(() => {
@@ -47,14 +77,27 @@ export default function CustomersPage() {
   const handleOpenModal = (customer?: Customer) => {
     if (customer) {
       setSelectedCustomer(customer);
+      const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
       setFormData({
         full_name: customer.full_name || customer.name || "",
         mobile: customer.mobile || "",
-        email: customer.email || ""
+        email: customer.email || "",
+        emergencyName: primaryEmer?.name || "",
+        emergencyMobile: primaryEmer?.mobile || "",
+        emergencyRelationship: primaryEmer?.relationship || "Relative",
+        emergencyContactId: primaryEmer?.id || ""
       });
     } else {
       setSelectedCustomer(null);
-      setFormData({ full_name: "", mobile: "", email: "" });
+      setFormData({
+        full_name: "",
+        mobile: "",
+        email: "",
+        emergencyName: "",
+        emergencyMobile: "",
+        emergencyRelationship: "Relative",
+        emergencyContactId: ""
+      });
     }
     setIsModalOpen(true);
   };
@@ -108,12 +151,23 @@ export default function CustomersPage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedNumber(text);
+      setTimeout(() => setCopiedNumber(null), 2000);
+    }
+  };
+
   // Filtered customer list
   const filteredCustomers = customers.filter(c => {
+    const primaryEmer = c.emergency_contacts?.find(e => e.is_primary) || c.emergency_contacts?.[0];
     const matchesSearch =
       (c.full_name || c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.mobile || "").includes(searchTerm) ||
-      (c.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+      (c.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (primaryEmer?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (primaryEmer?.mobile || "").includes(searchTerm);
 
     const matchesStatus =
       statusFilter === "ALL" ||
@@ -129,8 +183,8 @@ export default function CustomersPage() {
   if (loading) {
     return (
       <div className="p-16 flex flex-col items-center justify-center text-slate-500 space-y-3">
-        <div className="text-4xl animate-bounce">⏳</div>
-        <div className="text-lg font-bold">Loading Customer Accounts...</div>
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="text-sm font-bold">Loading Customer Accounts...</div>
       </div>
     );
   }
@@ -145,26 +199,28 @@ export default function CustomersPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Customer Management</h1>
           </div>
           <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1">
-            Connected users, vehicle owners, and emergency notification settings.
+            Registered vehicle owners, contact details, and emergency safety contacts.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button
             onClick={() => handleOpenModal()}
-            className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-2xl font-black text-sm shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-2xl font-black text-sm shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
           >
-            ✨ Add Customer
+            <Plus className="w-4 h-4" />
+            <span>Add Customer</span>
           </button>
         </div>
       </div>
 
-      {/* Modern Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:w-80">
+      {/* Filter, Search & View Switcher Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between">
+        {/* Search */}
+        <div className="relative w-full lg:w-80">
           <input
             type="text"
-            placeholder="🔍 Search name, phone, or email..."
+            placeholder="🔍 Search name, phone, emergency..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-emerald-500 focus:bg-white transition-all"
@@ -179,181 +235,421 @@ export default function CustomersPage() {
           )}
         </div>
 
-        {/* Status Filters */}
-        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          <button
-            onClick={() => setStatusFilter("ALL")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-              statusFilter === "ALL"
-                ? "bg-slate-900 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            All ({customers.length})
-          </button>
-          <button
-            onClick={() => setStatusFilter("ACTIVE")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-              statusFilter === "ACTIVE"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-            }`}
-          >
-            ✅ Active ({activeCount})
-          </button>
-          <button
-            onClick={() => setStatusFilter("BLOCKED")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-              statusFilter === "BLOCKED"
-                ? "bg-red-600 text-white shadow-sm"
-                : "bg-red-50 text-red-700 hover:bg-red-100"
-            }`}
-          >
-            🚫 Blocked ({blockedCount})
-          </button>
+        {/* Status Filters + View Switcher */}
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+          {/* Status Pills */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <button
+              onClick={() => setStatusFilter("ALL")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+                statusFilter === "ALL"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              All ({customers.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter("ACTIVE")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+                statusFilter === "ACTIVE"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              }`}
+            >
+              ✅ Active ({activeCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter("BLOCKED")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+                statusFilter === "BLOCKED"
+                  ? "bg-red-600 text-white shadow-sm"
+                  : "bg-red-50 text-red-700 hover:bg-red-100"
+              }`}
+            >
+              🚫 Blocked ({blockedCount})
+            </button>
+          </div>
+
+          {/* View Mode Toggle (Card vs Table) */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+            <button
+              onClick={() => setViewMode("card")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                viewMode === "card"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="Tabular Table View"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Table</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Customer Cards Grid with Left-Side Color Bar and Red/Light-Green Theming */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredCustomers.length > 0 ? (
-          filteredCustomers.map(customer => {
-            const isBlocked = customer.status === "BLOCKED";
+      {/* VIEW 1: Customer Cards Grid */}
+      {viewMode === "card" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredCustomers.length > 0 ? (
+            filteredCustomers.map(customer => {
+              const isBlocked = customer.status === "BLOCKED";
+              const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
+              const vehicles = customer.vehicles || [];
 
-            return (
-              <div
-                key={customer.id}
-                className={`rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between border-l-[6px] ${
-                  isBlocked
-                    ? "border-l-red-500 bg-red-50/50 border border-red-200 hover:border-red-300"
-                    : "border-l-emerald-500 bg-emerald-50/20 border border-emerald-100 hover:border-emerald-300"
-                }`}
-              >
-                <div>
-                  {/* Top Row: Avatar + Name + Status Pill */}
-                  <div className="flex justify-between items-start gap-3 mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border shadow-sm ${
-                          isBlocked
-                            ? "bg-red-100 text-red-700 border-red-200"
-                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
-                        }`}
-                      >
-                        {isBlocked ? "🚫" : "🧑‍💻"}
-                      </div>
-                      <div>
-                        <h3
-                          className={`font-black text-lg line-clamp-1 ${
-                            isBlocked ? "text-red-950" : "text-slate-900"
-                          }`}
-                        >
-                          {customer.full_name || customer.name || "Unnamed Customer"}
-                        </h3>
-                        <p
-                          className={`text-xs font-mono font-bold ${
-                            isBlocked ? "text-red-500" : "text-slate-400"
-                          }`}
-                        >
-                          🆔 {customer.id.substring(0, 8)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-black border shrink-0 ${
-                        isBlocked
-                          ? "bg-red-100 text-red-700 border-red-300"
-                          : "bg-emerald-100 text-emerald-800 border-emerald-300"
-                      }`}
-                    >
-                      {isBlocked ? "🚫 BLOCKED" : "✅ ACTIVE"}
-                    </span>
-                  </div>
-
-                  {/* Customer Information Badges */}
-                  <div
-                    className={`space-y-2 mb-5 p-3 rounded-2xl border text-sm ${
-                      isBlocked
-                        ? "bg-red-100/60 border-red-200/80 text-red-950"
-                        : "bg-white/80 border-slate-100 text-slate-700"
-                    }`}
-                  >
-                    <p className="flex items-center">
-                      <span className="text-base mr-2">📱</span>
-                      <span className={`font-black ${isBlocked ? "text-red-900" : "text-slate-800"}`}>
-                        {customer.mobile || "No Mobile"}
-                      </span>
-                    </p>
-                    <p className="flex items-center truncate">
-                      <span className="text-base mr-2">📧</span>
-                      <span className={`truncate font-medium ${isBlocked ? "text-red-800" : "text-slate-600"}`}>
-                        {customer.email || "No Email"}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom Action Buttons (Clean App Ergonomics) */}
+              return (
                 <div
-                  className={`flex items-center gap-2 pt-3 border-t ${
-                    isBlocked ? "border-red-200" : "border-slate-100"
+                  key={customer.id}
+                  className={`rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between border-l-[6px] ${
+                    isBlocked
+                      ? "border-l-red-500 bg-red-50/40 border border-red-200 hover:border-red-300"
+                      : "border-l-emerald-500 bg-white border border-slate-100 hover:border-emerald-300"
                   }`}
                 >
-                  <button
-                    onClick={() => handleOpenDetails(customer)}
-                    className={`flex-1 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm ${
-                      isBlocked
-                        ? "bg-white hover:bg-red-100 text-red-800 border border-red-200"
-                        : "bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-200"
-                    }`}
-                  >
-                    📄 Details
-                  </button>
+                  <div>
+                    {/* Top Row: Avatar + Name + Status Pill */}
+                    <div className="flex justify-between items-start gap-3 mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border shadow-sm shrink-0 ${
+                            isBlocked
+                              ? "bg-red-100 text-red-700 border-red-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          }`}
+                        >
+                          {isBlocked ? "🚫" : "🧑‍💻"}
+                        </div>
+                        <div className="min-w-0">
+                          <h3
+                            className={`font-black text-lg truncate ${
+                              isBlocked ? "text-red-950" : "text-slate-900"
+                            }`}
+                          >
+                            {customer.full_name || customer.name || "Unnamed Customer"}
+                          </h3>
+                          <p
+                            className={`text-xs font-mono font-bold ${
+                              isBlocked ? "text-red-500" : "text-slate-400"
+                            }`}
+                          >
+                            🆔 {customer.id.substring(0, 8)}
+                          </p>
+                        </div>
+                      </div>
 
-                  <button
-                    onClick={() => handleOpenModal(customer)}
-                    className={`flex-1 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm ${
-                      isBlocked
-                        ? "bg-red-100 hover:bg-red-200 text-red-900 border border-red-300"
-                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200"
-                    }`}
-                  >
-                    ✏️ Edit
-                  </button>
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-black border shrink-0 uppercase tracking-wider ${
+                          isBlocked
+                            ? "bg-red-100 text-red-700 border-red-300"
+                            : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        }`}
+                      >
+                        {isBlocked ? "BLOCKED" : "ACTIVE"}
+                      </span>
+                    </div>
 
-                  <button
-                    onClick={() => handleToggleStatus(customer)}
-                    title={isBlocked ? "Unblock account" : "Block account"}
-                    className={`px-3 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm ${
-                      isBlocked
-                        ? "bg-red-600 hover:bg-red-700 text-white"
-                        : "bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-200"
+                    {/* Customer Information Badges */}
+                    <div
+                      className={`space-y-2 mb-3 p-3 rounded-2xl border text-xs ${
+                        isBlocked
+                          ? "bg-red-100/60 border-red-200/80 text-red-950"
+                          : "bg-slate-50 border-slate-100 text-slate-700"
+                      }`}
+                    >
+                      <p className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-black text-slate-800">
+                          <Phone className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{customer.mobile || "No Mobile"}</span>
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(customer.mobile)}
+                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold"
+                          title="Copy phone"
+                        >
+                          {copiedNumber === customer.mobile ? "✓ Copied" : "Copy"}
+                        </button>
+                      </p>
+                      <p className="flex items-center gap-1.5 truncate text-slate-500 font-medium">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{customer.email || "No Email"}</span>
+                      </p>
+                    </div>
+
+                    {/* Emergency Contact Badge (HIGHLIGHTED) */}
+                    {primaryEmer ? (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200/70 rounded-2xl text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-red-600">
+                            <HeartHandshake className="w-3.5 h-3.5" />
+                            <span>Emergency Contact</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                            {primaryEmer.relationship || "Relative"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-0.5">
+                          <span className="font-bold text-slate-800 truncate">{primaryEmer.name}</span>
+                          <span className="font-mono font-black text-red-700 text-xs">{primaryEmer.mobile}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-2.5 bg-amber-50/80 border border-amber-200/60 rounded-2xl flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                          <span>No Emergency Contact</span>
+                        </span>
+                        <button
+                          onClick={() => handleOpenModal(customer)}
+                          className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 underline cursor-pointer"
+                        >
+                          + Add Contact
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Vehicles Tags */}
+                    {vehicles.length > 0 && (
+                      <div className="mb-4 flex flex-wrap gap-1.5">
+                        {vehicles.map((v, i) => (
+                          <span
+                            key={v.id || i}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-[10px] font-mono font-bold border border-slate-200"
+                          >
+                            <Car className="w-3 h-3 text-slate-400" />
+                            <span>{v.registration_number}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Action Buttons */}
+                  <div
+                    className={`flex items-center gap-2 pt-3 border-t ${
+                      isBlocked ? "border-red-200" : "border-slate-100"
                     }`}
                   >
-                    {isBlocked ? "✅ Unblock" : "🚫 Block"}
-                  </button>
+                    <button
+                      onClick={() => handleOpenDetails(customer)}
+                      className="flex-1 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Details</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleOpenModal(customer)}
+                      className="flex-1 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleStatus(customer)}
+                      title={isBlocked ? "Unblock account" : "Block account"}
+                      className={`px-3 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm cursor-pointer ${
+                        isBlocked
+                          ? "bg-red-600 hover:bg-red-700 text-white"
+                          : "bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-200"
+                      }`}
+                    >
+                      {isBlocked ? "Unblock" : "Block"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="col-span-full bg-white p-12 text-center rounded-3xl border-2 border-dashed border-slate-200">
-            <p className="text-5xl mb-3">📭</p>
-            <h3 className="text-lg font-black text-slate-800">No Customers Found</h3>
-            <p className="text-slate-400 text-xs mt-1">Try adjusting your search query or status filter.</p>
+              );
+            })
+          ) : (
+            <div className="col-span-full bg-white p-12 text-center rounded-3xl border-2 border-dashed border-slate-200">
+              <p className="text-5xl mb-3">📭</p>
+              <h3 className="text-lg font-black text-slate-800">No Customers Found</h3>
+              <p className="text-slate-400 text-xs mt-1">Try adjusting your search query or status filter.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VIEW 2: Tabular Table View */}
+      {viewMode === "table" && (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  <th className="py-4 px-5">Customer</th>
+                  <th className="py-4 px-5">Mobile &amp; Email</th>
+                  <th className="py-4 px-5">Emergency Contact</th>
+                  <th className="py-4 px-5">Vehicles</th>
+                  <th className="py-4 px-5">Status</th>
+                  <th className="py-4 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map(customer => {
+                    const isBlocked = customer.status === "BLOCKED";
+                    const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
+                    const vehicles = customer.vehicles || [];
+
+                    return (
+                      <tr 
+                        key={customer.id}
+                        className={`hover:bg-slate-50/80 transition-colors ${
+                          isBlocked ? "bg-red-50/20" : ""
+                        }`}
+                      >
+                        {/* Customer Column */}
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-200">
+                              {customer.full_name?.charAt(0).toUpperCase() || "U"}
+                            </div>
+                            <div>
+                              <div className="font-black text-slate-900 text-sm">
+                                {customer.full_name || customer.name || "Unnamed Customer"}
+                              </div>
+                              <div className="text-[10px] font-mono text-slate-400 font-bold">
+                                ID: {customer.id.substring(0, 8)}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Mobile & Email */}
+                        <td className="py-4 px-5">
+                          <div className="font-mono font-bold text-slate-800 flex items-center gap-1.5">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            <span>{customer.mobile || "No Mobile"}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 truncate max-w-[180px]">
+                            {customer.email || "No Email"}
+                          </div>
+                        </td>
+
+                        {/* Emergency Contact */}
+                        <td className="py-4 px-5">
+                          {primaryEmer ? (
+                            <div className="p-2 bg-red-50 border border-red-200 rounded-xl max-w-[220px]">
+                              <div className="flex items-center justify-between gap-1 text-[10px] font-black text-red-700">
+                                <span className="truncate">{primaryEmer.name}</span>
+                                <span className="bg-red-200/70 text-red-800 px-1.5 py-0.2 rounded text-[9px] uppercase">
+                                  {primaryEmer.relationship || "Relative"}
+                                </span>
+                              </div>
+                              <div className="font-mono font-bold text-red-800 text-[11px] mt-0.5">
+                                {primaryEmer.mobile}
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenModal(customer)}
+                              className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 cursor-pointer flex items-center gap-1"
+                            >
+                              <AlertTriangle className="w-3 h-3 text-amber-500" />
+                              <span>+ Add Emergency</span>
+                            </button>
+                          )}
+                        </td>
+
+                        {/* Vehicles */}
+                        <td className="py-4 px-5">
+                          {vehicles.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {vehicles.map((v, i) => (
+                                <span
+                                  key={v.id || i}
+                                  className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-mono font-bold border border-slate-200"
+                                >
+                                  {v.registration_number}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">No vehicles</span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-4 px-5">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                              isBlocked
+                                ? "bg-red-100 text-red-700 border-red-300"
+                                : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                            }`}
+                          >
+                            {customer.status || "ACTIVE"}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-4 px-5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenDetails(customer)}
+                              className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer"
+                              title="View Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleOpenModal(customer)}
+                              className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer"
+                              title="Edit Customer & Emergency Contact"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(customer)}
+                              className={`p-2 rounded-xl text-xs font-bold border cursor-pointer ${
+                                isBlocked
+                                  ? "bg-red-600 hover:bg-red-700 text-white border-red-600"
+                                  : "bg-slate-50 hover:bg-red-50 text-slate-600 hover:text-red-700 border-slate-200"
+                              }`}
+                              title={isBlocked ? "Unblock account" : "Block account"}
+                            >
+                              {isBlocked ? "Unblock" : "Block"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                      No matching customer accounts found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Details Modal */}
       {isDetailsOpen && selectedCustomer && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsDetailsOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -366,9 +662,9 @@ export default function CustomersPage() {
             >
               <button
                 onClick={() => setIsDetailsOpen(false)}
-                className="absolute top-4 right-4 text-white/60 hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
+                className="absolute top-4 right-4 text-white/60 hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"
               >
-                ✖
+                <X className="w-4 h-4" />
               </button>
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-3xl border border-white/20 shadow-inner">
@@ -391,33 +687,102 @@ export default function CustomersPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-5 bg-slate-50">
+            <div className="p-6 space-y-4 bg-slate-50">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">📱 Mobile Number</p>
-                  <p className="font-black text-slate-800 text-base">{selectedCustomer.mobile}</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Mobile Number</span>
+                  </p>
+                  <p className="font-black text-slate-800 text-base font-mono">{selectedCustomer.mobile}</p>
                 </div>
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">📧 Email Address</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Email Address</span>
+                  </p>
                   <p className="font-bold text-slate-800 text-sm truncate">{selectedCustomer.email || "N/A"}</p>
                 </div>
               </div>
 
+              {/* Emergency Contact Card in Details */}
+              <div className="bg-white p-4 rounded-2xl border border-red-200/80 shadow-sm space-y-2">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-xs font-black text-red-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <HeartHandshake className="w-4 h-4 text-red-500" />
+                    <span>Emergency Safety Contact</span>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setIsDetailsOpen(false);
+                      handleOpenModal(selectedCustomer);
+                    }}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline cursor-pointer"
+                  >
+                    Edit Contact
+                  </button>
+                </div>
+
+                {selectedCustomer.emergency_contacts && selectedCustomer.emergency_contacts.length > 0 ? (
+                  selectedCustomer.emergency_contacts.map((emer, idx) => (
+                    <div key={emer.id || idx} className="flex justify-between items-center text-xs pt-1">
+                      <div>
+                        <p className="font-black text-slate-900">{emer.name}</p>
+                        <p className="text-[11px] text-slate-400 font-medium">{emer.relationship || "Relative"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono font-black text-red-600 text-sm">{emer.mobile}</p>
+                        <button
+                          onClick={() => copyToClipboard(emer.mobile)}
+                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold"
+                        >
+                          {copiedNumber === emer.mobile ? "✓ Copied" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-2 text-center text-slate-400 text-xs">
+                    <p>No emergency contact has been configured for this customer.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Vehicles Card in Details */}
+              {selectedCustomer.vehicles && selectedCustomer.vehicles.length > 0 && (
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <Car className="w-4 h-4" />
+                    <span>Registered Vehicles ({selectedCustomer.vehicles.length})</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {selectedCustomer.vehicles.map((v, i) => (
+                      <span
+                        key={v.id || i}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-mono font-black border border-slate-200"
+                      >
+                        {v.registration_number} ({v.vehicle_type || "Vehicle"})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-slate-200 flex justify-between items-center gap-3">
+              <div className="pt-3 border-t border-slate-200 flex justify-between items-center gap-3">
                 <button
                   onClick={() => {
                     setIsDetailsOpen(false);
                     handleOpenModal(selectedCustomer);
                   }}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs transition-colors"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                 >
                   ✏️ Edit Profile
                 </button>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleToggleStatus(selectedCustomer)}
-                    className={`px-4 py-2.5 font-bold rounded-xl text-xs transition-colors ${
+                    className={`px-4 py-2.5 font-bold rounded-xl text-xs transition-colors cursor-pointer ${
                       selectedCustomer.status === "ACTIVE"
                         ? "bg-red-100 text-red-700 hover:bg-red-200"
                         : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
@@ -427,7 +792,7 @@ export default function CustomersPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(selectedCustomer.id)}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-700 font-bold rounded-xl text-xs transition-colors"
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                   >
                     🗑️ Delete
                   </button>
@@ -438,56 +803,57 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
+      {/* Create / Edit Modal (With Emergency Contact Fields) */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
-            <form onSubmit={handleSubmit}>
-              <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
+              <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
                 <h3 className="text-lg font-black text-slate-900">
                   {selectedCustomer ? "✏️ Edit Customer Profile" : "✨ New Customer Profile"}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 font-bold"
+                  className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
                 >
-                  ✖
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto">
+                {/* Basic Customer Info */}
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                    👤 Full Name
+                    👤 Customer Full Name
                   </label>
                   <input
                     type="text"
                     value={formData.full_name}
                     onChange={e => setFormData({ ...formData, full_name: e.target.value })}
-                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
                     required
-                    placeholder="e.g. Rahul Sharma"
+                    placeholder="e.g. Muneer"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                    📱 Mobile Number
+                    📱 Mobile Number (Owner)
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     value={formData.mobile}
                     onChange={e => setFormData({ ...formData, mobile: e.target.value })}
-                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors font-mono"
                     required
-                    placeholder="e.g. +91 98765 43210"
+                    placeholder="e.g. 9645910890"
                   />
                 </div>
 
@@ -499,23 +865,79 @@ export default function CustomersPage() {
                     type="email"
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
                     placeholder="customer@example.com"
                   />
                 </div>
+
+                {/* Emergency Contact Fieldset */}
+                <div className="pt-2 border-t border-slate-200 space-y-3">
+                  <div className="flex items-center gap-1.5">
+                    <HeartHandshake className="w-4 h-4 text-red-500" />
+                    <span className="text-xs font-black text-red-600 uppercase tracking-wider">
+                      Emergency Contact Settings
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Emergency Contact Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.emergencyName}
+                      onChange={e => setFormData({ ...formData, emergencyName: e.target.value })}
+                      className="w-full border-2 border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:border-red-400 focus:ring-0 outline-none transition-colors"
+                      placeholder="e.g. Muhammad Muneer"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Emergency Mobile No.
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.emergencyMobile}
+                        onChange={e => setFormData({ ...formData, emergencyMobile: e.target.value })}
+                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:border-red-400 focus:ring-0 outline-none transition-colors font-mono"
+                        placeholder="e.g. 9539230000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Relationship
+                      </label>
+                      <select
+                        value={formData.emergencyRelationship}
+                        onChange={e => setFormData({ ...formData, emergencyRelationship: e.target.value })}
+                        className="w-full border-2 border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold focus:border-red-400 focus:ring-0 outline-none transition-colors bg-white"
+                      >
+                        <option value="Spouse">Spouse</option>
+                        <option value="Parent">Parent</option>
+                        <option value="Son/Daughter">Son/Daughter</option>
+                        <option value="Sibling">Sibling</option>
+                        <option value="Friend">Friend</option>
+                        <option value="Relative">Relative</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-6 pt-0 flex gap-3">
+              <div className="p-6 pt-3 bg-slate-50 border-t border-slate-100 flex gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-slate-700 font-bold hover:bg-slate-200 transition-colors text-xs"
+                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold hover:bg-slate-100 transition-colors text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-500 shadow-lg shadow-emerald-600/25 transition-all text-xs"
+                  className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-500 shadow-lg shadow-emerald-600/25 transition-all text-xs cursor-pointer"
                 >
                   {selectedCustomer ? "💾 Save Changes" : "🚀 Create Profile"}
                 </button>

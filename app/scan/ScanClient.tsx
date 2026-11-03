@@ -45,6 +45,13 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const [loading, setLoading] = useState<boolean>(!initialQrData);
   const [error, setError] = useState<string | null>(null);
 
+  // Direct 1-Tap Masked Call State with Permission Modal (Top-level hooks)
+  const [activeCallTarget, setActiveCallTarget] = useState<"owner" | "emergency" | null>(null);
+  const [activeCallMessage, setActiveCallMessage] = useState<string | null>(null);
+  const [permissionModalTarget, setPermissionModalTarget] = useState<"owner" | "emergency" | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [noEmergencyAlert, setNoEmergencyAlert] = useState<boolean>(false);
+
   const resolvedToken = token || initialToken || "9671543dca4c25f71d4a1601c5ce7c947c8a26d0a1a454e7e35ed6a4960018d1";
   const defaultVirtualNumber = "04954269245";
 
@@ -409,47 +416,61 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const vMakeModel = [currentVehicle.make, currentVehicle.model].filter(Boolean).join(' ');
 
   // Emergency contact resolution
-  const emergencyList = customer?.emergency_contacts || [];
-  const hasEmergencyContact = emergencyList.length > 0;
-  const primaryEmergency = emergencyList.find(c => c.is_primary) || emergencyList[0];
+  const rawEmerList = customer?.emergency_contacts || (customer as any)?.emergencyContacts || [];
+  const emergencyList = Array.isArray(rawEmerList) ? rawEmerList : [];
+  const primaryEmergency = emergencyList.find((c: any) => c.is_primary) || emergencyList[0] || null;
+  const rawEmerMobile = primaryEmergency?.mobile || (customer as any)?.emergencyContact || (customer as any)?.emergency_contact || '';
+  const cleanEmerMobile = String(rawEmerMobile).replace(/[^0-9]/g, '');
+  const hasEmergencyContact = cleanEmerMobile.length >= 10;
+  const emergencyMobile = hasEmergencyContact ? cleanEmerMobile : '';
   const emergencyName = primaryEmergency?.name || primaryEmergency?.relationship || "Emergency Contact";
-  const emergencyMobile = primaryEmergency?.mobile || customer?.emergencyContact || customer?.mobile;
-  const emergencyRelationship = primaryEmergency?.relationship || "Relative";
+  const emergencyRelationship = primaryEmergency?.relationship || "Emergency Contact";
 
   // Pre-warms the backend router so Exotel dials the target on the very 1st ring
   const primeBackend = (targetNum?: string, targetT: 'owner' | 'emergency' = 'owner', targetN?: string) => {
     if (!targetNum) return;
     try {
+      const cleanTarget = String(targetNum).replace(/[^0-9]/g, '');
       const payload = JSON.stringify({
         token: resolvedToken,
-        targetNumber: targetNum,
+        targetNumber: cleanTarget,
         targetType: targetT,
         targetName: targetN || (targetT === 'owner' ? 'Vehicle Owner' : 'Emergency Contact'),
         plateNumber: regNo
       });
-      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        navigator.sendBeacon('https://api.vyraconnect.in/api/exotel/prime', new Blob([payload], { type: 'application/json' }));
-      } else {
-        fetch('https://api.vyraconnect.in/api/exotel/prime', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          keepalive: true
-        }).catch(() => {});
-      }
+
+      // 1. Send via POST with keepalive: true
+      fetch('https://api.vyraconnect.in/api/exotel/prime', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(() => {});
+
+      // 2. Also send GET query string fallback (guaranteed instant Express parsing)
+      const q = new URLSearchParams({
+        token: resolvedToken,
+        targetNumber: cleanTarget,
+        targetType: targetT,
+        targetName: targetN || '',
+        plateNumber: regNo
+      }).toString();
+      fetch(`https://api.vyraconnect.in/api/exotel/prime?${q}`, {
+        method: 'GET',
+        keepalive: true
+      }).catch(() => {});
     } catch {}
   };
 
-  const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
-  const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
-
-  // Direct 1-Tap Masked Call State with Permission Modal
-  const [activeCallTarget, setActiveCallTarget] = useState<"owner" | "emergency" | null>(null);
-  const [activeCallMessage, setActiveCallMessage] = useState<string | null>(null);
-  const [permissionModalTarget, setPermissionModalTarget] = useState<"owner" | "emergency" | null>(null);
-  const [copied, setCopied] = useState<boolean>(false);
+  const ownerMobile = customer?.mobile ? String(customer.mobile).replace(/[^0-9]/g, '') : undefined;
+  const emerMobile = hasEmergencyContact ? emergencyMobile : undefined;
 
   const requestCallPermission = (targetType: "owner" | "emergency") => {
+    if (targetType === "emergency" && !hasEmergencyContact) {
+      setNoEmergencyAlert(true);
+      return;
+    }
+
     const isEmergency = targetType === "emergency";
     const targetMobile = isEmergency ? emerMobile : ownerMobile;
     const targetName = isEmergency ? emergencyName : (customer?.full_name || customer?.name || "Vehicle Owner");
@@ -556,7 +577,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                   <div>
                     <div className="text-base font-extrabold text-white">Call Emergency Contact</div>
                     <div className="text-[11px] text-rose-100 font-medium">
-                      {hasEmergencyContact ? `Connected to ${emergencyRelationship}` : "24/7 Masked Safety Relay"}
+                      {hasEmergencyContact ? `Connected to ${emergencyRelationship} (${emergencyName})` : "No Emergency Contact Added"}
                     </div>
                   </div>
                 </div>
@@ -719,6 +740,48 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                     <span>Can&apos;t open dialer? Tap to copy {defaultVirtualNumber}</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alert if Emergency Contact is Not Added */}
+      {noEmergencyAlert && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setNoEmergencyAlert(false)}
+        >
+          <div 
+            className="w-full max-w-sm bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">No Emergency Contact Found</h3>
+              <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                The owner of vehicle (<strong className="text-cyan-300">{regNo}</strong>) has not added an emergency contact number yet.
+              </p>
+            </div>
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNoEmergencyAlert(false);
+                  requestCallPermission("owner");
+                }}
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 transition shadow-lg cursor-pointer"
+              >
+                Call Vehicle Owner Instead
+              </button>
+              <button
+                type="button"
+                onClick={() => setNoEmergencyAlert(false)}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition cursor-pointer"
+              >
+                Dismiss
               </button>
             </div>
           </div>

@@ -42,10 +42,11 @@ export default function ReportsPage() {
   // Professional Excel Data Formatters
   const formatCustomersForExcel = () => {
     return customersData.map(c => ({
-      "Customer ID": c.id,
+      "Customer ID": c.customer_code || c.id,
       "Full Name": c.full_name || c.name || "N/A",
       "Mobile Number": c.mobile || "N/A",
       "Email Address": c.email || "N/A",
+      "Emergency Contact": c.emergency_contacts?.[0]?.name ? `${c.emergency_contacts[0].name} (${c.emergency_contacts[0].mobile})` : "None",
       "Account Status": c.status || "ACTIVE",
       "Registered Date": c.created_at ? new Date(c.created_at).toLocaleDateString() : "N/A"
     }));
@@ -57,7 +58,7 @@ export default function ReportsPage() {
       return {
         "Vehicle ID": v.id,
         "Registration Number": v.registration_number || v.registrationNumber || "N/A",
-        "Vehicle Type": v.vehicle_type || "CAR",
+        "Vehicle Type": v.vehicle_type || "Four Wheeler",
         "Make / Brand": v.make || "N/A",
         "Model": v.model || "N/A",
         "Status": v.status || "ACTIVE",
@@ -101,10 +102,17 @@ export default function ReportsPage() {
 
   // Export Complete Multi-Sheet Master Excel Workbook
   const handleExportMasterExcel = () => {
+    const activeSold = metrics?.metrics?.active || 0;
+    const price = 499;
+    const totalRev = activeSold * price;
+
     const summarySheet = metrics ? [
+      { Metric: "Total Cards Sold (Active)", Value: activeSold },
+      { Metric: "Price Per Card (₹)", Value: price },
+      { Metric: "Total Sales Revenue (₹)", Value: totalRev },
       { Metric: "Total QR Tags Generated", Value: metrics.metrics.totalQRs },
       { Metric: "Total Sold / Assigned", Value: metrics.metrics.totalSold },
-      { Metric: "Available Inventory", Value: metrics.metrics.available },
+      { Metric: "Available Stock Inventory", Value: metrics.metrics.available },
       { Metric: "Active Scannable QRs", Value: metrics.metrics.active },
       { Metric: "Pending Activation", Value: metrics.metrics.assignedPending },
       { Metric: "Blocked QR Tags", Value: metrics.metrics.blocked },
@@ -114,8 +122,20 @@ export default function ReportsPage() {
       { Metric: "Top Batch QR Sales", Value: metrics.topBatch?.sold_count || 0 }
     ] : [];
 
+    const batchSheet = (metrics?.batchSummaries || []).map((b: any) => ({
+      "Batch Code": b.batch_code,
+      "Product Type": b.product_type,
+      "Total Tags": b.total,
+      "Cards Sold": b.sold,
+      "Available Stock": b.available,
+      "Revenue (₹)": b.revenue,
+      "Status": b.status,
+      "Created At": b.created_at ? new Date(b.created_at).toLocaleDateString() : "N/A"
+    }));
+
     exportMultiSheetToExcel([
       { name: 'Executive Summary', data: summarySheet },
+      ...(batchSheet.length > 0 ? [{ name: 'Batch Sales & Inventory', data: batchSheet }] : []),
       { name: 'Customer Accounts', data: formatCustomersForExcel() },
       { name: 'Vehicle Garage', data: formatVehiclesForExcel() },
       { name: 'QR Inventory', data: formatQrsForExcel() }
@@ -131,6 +151,9 @@ export default function ReportsPage() {
     );
   }
 
+  const activeSales = metrics?.metrics?.active || 0;
+  const salesRevenue = activeSales * 499;
+
   return (
     <div className="p-4 sm:p-6 pb-20 max-w-7xl mx-auto space-y-6">
       {/* Header Banner */}
@@ -141,19 +164,19 @@ export default function ReportsPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Platform Analytics & Reports</h1>
           </div>
           <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1">
-            Detailed performance reports, Excel spreadsheet downloads, and printable records.
+            Detailed performance reports, sales revenue calculations, Excel downloads, and printable records.
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={handleExportMasterExcel}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 print:hidden"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0 print:hidden cursor-pointer"
           >
             <span>📥</span> Export Master Excel (.xlsx)
           </button>
           <button
             onClick={() => window.print()}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-1.5 print:hidden"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-1.5 print:hidden cursor-pointer"
           >
             <span>🖨️</span> Print Report
           </button>
@@ -162,25 +185,49 @@ export default function ReportsPage() {
 
       {/* Tabs */}
       <div className="flex space-x-2 overflow-x-auto print:hidden bg-slate-100 p-2 rounded-2xl">
-        <button onClick={() => setActiveTab('dashboard')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all ${activeTab === 'dashboard' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>📊 Overview</button>
-        <button onClick={() => setActiveTab('customers')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all ${activeTab === 'customers' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>👥 Customers ({customersData.length})</button>
-        <button onClick={() => setActiveTab('vehicles')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all ${activeTab === 'vehicles' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🚘 Vehicles ({vehiclesData.length})</button>
-        <button onClick={() => setActiveTab('qrs')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all ${activeTab === 'qrs' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🔳 QR Codes ({qrsData.length})</button>
+        <button onClick={() => setActiveTab('dashboard')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'dashboard' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>📊 Overview & Sales</button>
+        <button onClick={() => setActiveTab('customers')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>👥 Customers ({customersData.length})</button>
+        <button onClick={() => setActiveTab('vehicles')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'vehicles' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🚘 Vehicles ({vehiclesData.length})</button>
+        <button onClick={() => setActiveTab('qrs')} className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'qrs' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>🔳 QR Codes ({qrsData.length})</button>
       </div>
 
       {/* Overview Tab */}
       {activeTab === 'dashboard' && metrics && (
         <div className="space-y-8 animate-in fade-in">
-          {/* Main QR Analytics */}
+          {/* Commercial Sales Metrics (Requirement: ₹499/card) */}
+          <section>
+            <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center">
+              <span>💰</span> <span className="ml-2">Commercial Sales & Revenue (₹499 / Card)</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 p-6 rounded-2xl shadow-sm">
+                <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Total Cards Sold (Active) 🏷️</p>
+                <p className="text-4xl font-black text-slate-900">{activeSales}</p>
+                <p className="text-xs text-emerald-700 mt-2 font-medium">1 Active Tag = 1 Verified Sale</p>
+              </div>
+              <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 p-6 rounded-2xl shadow-sm">
+                <p className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-2">Total Sales Revenue 💵</p>
+                <p className="text-4xl font-black text-teal-900">₹{salesRevenue.toLocaleString('en-IN')}</p>
+                <p className="text-xs text-teal-700 mt-2 font-medium">Calculated at ₹499 per unit</p>
+              </div>
+              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 p-6 rounded-2xl shadow-sm">
+                <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider mb-2">Available Inventory 📦</p>
+                <p className="text-4xl font-black text-cyan-900">{metrics.metrics.available}</p>
+                <p className="text-xs text-cyan-700 mt-2 font-medium">Ready for immediate assignment</p>
+              </div>
+            </div>
+          </section>
+
+          {/* QR Lifecycle Breakdown */}
           <section>
             <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center">
               <span>🔳</span> <span className="ml-2">QR Lifecycle Metrics</span>
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-6 rounded-2xl shadow-sm">
-                <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Total Sold 🏷️</p>
-                <p className="text-4xl font-black text-slate-900">{metrics.metrics.totalSold}</p>
-                <p className="text-xs text-indigo-600/70 mt-2 font-medium">Assigned to accounts</p>
+                <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Total Generated</p>
+                <p className="text-4xl font-black text-slate-900">{metrics.metrics.totalQRs}</p>
+                <p className="text-xs text-indigo-600/70 mt-2 font-medium">Platform QR total</p>
               </div>
               <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 p-6 rounded-2xl shadow-sm">
                 <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Active Tags ✅</p>
@@ -198,26 +245,48 @@ export default function ReportsPage() {
                 <p className="text-xs text-red-600/70 mt-2 font-medium">Suspended</p>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex justify-between items-center relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 text-8xl opacity-5">📦</div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Inventory Available</p>
-                  <p className="text-4xl font-black text-slate-800">{metrics.metrics.available}</p>
-                  <p className="text-sm font-bold text-slate-400 mt-2">Total Generated: <span className="text-slate-600">{metrics.metrics.totalQRs}</span></p>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-cyan-600 to-blue-700 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 text-8xl opacity-10">🔥</div>
-                <div>
-                  <p className="text-xs font-bold text-cyan-200 uppercase tracking-wider mb-2">Top Selling Batch</p>
-                  <p className="text-3xl font-black font-mono">{metrics.topBatch?.batch_code || 'N/A'}</p>
-                  <p className="text-sm font-bold text-cyan-100 mt-2">Total Sales: <span className="text-white">{metrics.topBatch?.sold_count || 0} QRs</span></p>
-                </div>
-              </div>
-            </div>
           </section>
+
+          {/* QR Batch Performance Breakdown (Requirement) */}
+          {metrics.batchSummaries && metrics.batchSummaries.length > 0 && (
+            <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <span>📦</span> <span>Batch-Wise Sales Performance</span>
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 font-black text-slate-500 uppercase tracking-wider">
+                      <th className="p-3">Batch Code</th>
+                      <th className="p-3">Type</th>
+                      <th className="p-3">Total Inventory</th>
+                      <th className="p-3">Cards Sold (Active)</th>
+                      <th className="p-3">Available Stock</th>
+                      <th className="p-3">Sales Revenue (₹499/unit)</th>
+                      <th className="p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {metrics.batchSummaries.map((b: any) => (
+                      <tr key={b.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-mono font-black text-slate-900">🏷️ {b.batch_code}</td>
+                        <td className="p-3 font-bold text-slate-600">{b.product_type}</td>
+                        <td className="p-3 font-bold text-slate-800">{b.total}</td>
+                        <td className="p-3 font-black text-emerald-700">✅ {b.sold}</td>
+                        <td className="p-3 font-bold text-cyan-700">📦 {b.available}</td>
+                        <td className="p-3 font-mono font-black text-teal-800 text-sm">₹{b.revenue.toLocaleString('en-IN')}</td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            {b.status || 'COMPLETED'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {/* Customer & Vehicle Analytics */}
           <section>
@@ -254,7 +323,7 @@ export default function ReportsPage() {
             </h3>
             <button 
               onClick={() => handleExportTabExcel(activeTab)} 
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5 print:hidden transform hover:-translate-y-0.5 active:translate-y-0"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5 print:hidden transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
             >
               <span>📥</span> Export to Excel (.xlsx)
             </button>
@@ -271,8 +340,8 @@ export default function ReportsPage() {
               <tbody className="divide-y divide-slate-100">
                 {activeTab === 'customers' && customersData.map(c => (
                   <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 font-mono text-xs text-slate-500 font-bold">{c.id.substring(0,8)}</td>
-                    <td className="p-4 font-bold text-slate-800">{c.full_name || 'N/A'}</td>
+                    <td className="p-4 font-mono text-xs text-slate-500 font-bold">{c.customer_code || c.id.substring(0,8)}</td>
+                    <td className="p-4 font-bold text-slate-800">{c.full_name || c.name || 'N/A'}</td>
                     <td className="p-4 font-medium text-slate-600">{c.mobile || 'N/A'}</td>
                     <td className="p-4 text-slate-600">{c.email || 'N/A'}</td>
                     <td className="p-4">

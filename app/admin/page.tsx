@@ -11,11 +11,27 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   PieChart,
   Pie,
   Cell
 } from 'recharts';
+import { 
+  TrendingUp, IndianRupee, QrCode, Users, Car, Layers, 
+  CheckCircle2, Clock, Filter, ArrowUpRight, BarChart3, RefreshCw
+} from 'lucide-react';
+
+interface BatchSummary {
+  id: string;
+  batch_code: string;
+  product_type: string;
+  total: number;
+  sold: number;
+  available: number;
+  blocked?: number;
+  revenue: number;
+  status: string;
+  created_at?: string;
+}
 
 export default function AdminDashboard() {
   const [data, setData] = useState({
@@ -23,6 +39,9 @@ export default function AdminDashboard() {
     totalQRs: 0,
     activeQRs: 0,
     totalVehicles: 0,
+    salesCount: 0,
+    salesRevenue: 0,
+    pricePerCard: 499,
     recentAssignments: [] as any[]
   });
 
@@ -32,39 +51,65 @@ export default function AdminDashboard() {
     blocked: 0,
     assignedPending: 0,
     totalSold: 0,
+    salesCount: 0,
+    salesRevenue: 0,
+    pricePerCard: 499,
     activeCustomers: 0,
     inactiveCustomers: 0
   });
 
+  const [batchSummaries, setBatchSummaries] = useState<BatchSummary[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const [dashRes, repRes] = await Promise.all([
-          axios.get('https://api.vyraconnect.in/api/admin/dashboard').catch(() => ({ data: {} })),
-          axios.get('https://api.vyraconnect.in/api/admin/reports/dashboard').catch(() => ({ data: {} }))
-        ]);
-
-        if (dashRes.data) {
-          setData(prev => ({
-            ...prev,
-            ...dashRes.data
-          }));
-        }
-
-        if (repRes.data && repRes.data.metrics) {
-          setMetrics(repRes.data.metrics);
-        }
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboard();
   }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      const [dashRes, repRes] = await Promise.all([
+        axios.get('https://api.vyraconnect.in/api/admin/dashboard').catch(() => ({ data: {} })),
+        axios.get('https://api.vyraconnect.in/api/admin/reports/dashboard').catch(() => ({ data: {} }))
+      ]);
+
+      if (dashRes.data) {
+        setData(prev => ({
+          ...prev,
+          ...dashRes.data
+        }));
+      }
+
+      if (repRes.data && repRes.data.metrics) {
+        setMetrics(repRes.data.metrics);
+      }
+
+      const batches = dashRes.data?.batchSummaries || repRes.data?.batchSummaries || [];
+      setBatchSummaries(batches);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Selected batch filtering logic
+  const selectedBatch = selectedBatchId === "ALL" 
+    ? null 
+    : batchSummaries.find(b => b.id === selectedBatchId || b.batch_code === selectedBatchId);
+
+  // Active sales calculation: 1 active card = 1 sale = ₹499
+  const PRICE_PER_CARD = 499;
+  const globalActiveQRs = metrics.active || data.activeQRs || data.salesCount || 0;
+  const globalTotalQRs = data.totalQRs || (metrics.available + globalActiveQRs) || 0;
+  const globalAvailableQRs = metrics.available || Math.max(0, globalTotalQRs - globalActiveQRs);
+
+  // Applied values depending on batch filter
+  const displaySalesCount = selectedBatch ? selectedBatch.sold : globalActiveQRs;
+  const displaySalesRevenue = selectedBatch ? selectedBatch.revenue : (globalActiveQRs * PRICE_PER_CARD);
+  const displayTotalQRs = selectedBatch ? selectedBatch.total : globalTotalQRs;
+  const displayAvailableQRs = selectedBatch ? selectedBatch.available : globalAvailableQRs;
 
   // Growth timeline mock data synced with current totals
   const generateGrowthData = () => {
@@ -91,25 +136,21 @@ export default function AdminDashboard() {
   const growthData = generateGrowthData();
 
   // Circle Chart 1: QR Lifecycle Distribution
-  const activeCount = metrics.active || data.activeQRs || 0;
-  const availableCount = metrics.available || Math.max(0, (data.totalQRs || 0) - activeCount);
-  const blockedCount = metrics.blocked || 0;
-
   const qrPieData = [
-    { name: 'Active & Linked', value: activeCount || 1, color: '#10b981', emoji: '🟢' },
-    { name: 'Available Inventory', value: availableCount || 1, color: '#06b6d4', emoji: '⚪' },
-    ...(blockedCount > 0 ? [{ name: 'Blocked', value: blockedCount, color: '#ef4444', emoji: '🔴' }] : [])
+    { name: 'Active (Sold)', value: Math.max(displaySalesCount, 1), color: '#10b981', emoji: '🟢' },
+    { name: 'Available Inventory', value: Math.max(displayAvailableQRs, 1), color: '#06b6d4', emoji: '⚪' },
+    ...(metrics.blocked > 0 && !selectedBatch ? [{ name: 'Blocked', value: metrics.blocked, color: '#ef4444', emoji: '🔴' }] : [])
   ];
 
-  // Circle Chart 2: Platform Asset Balance (Customers vs Vehicles vs Assigned QRs)
+  // Circle Chart 2: Platform Asset Ratio
   const platformPieData = [
-    { name: 'Active Customers', value: Math.max(1, data.totalCustomers), color: '#6366f1', emoji: '👥' },
-    { name: 'Registered Fleet', value: Math.max(1, data.totalVehicles), color: '#3b82f6', emoji: '🚘' },
-    { name: 'Linked QR Tags', value: Math.max(1, activeCount), color: '#10b981', emoji: '🔳' }
+    { name: 'Platform Users', value: Math.max(1, data.totalCustomers), color: '#6366f1', emoji: '👥' },
+    { name: 'Fleet Vehicles', value: Math.max(1, data.totalVehicles), color: '#3b82f6', emoji: '🚘' },
+    { name: 'Cards Sold', value: Math.max(1, displaySalesCount), color: '#10b981', emoji: '🏷️' }
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 max-w-7xl mx-auto pb-16">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-cyan-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-cyan-500/10 blur-3xl pointer-events-none"></div>
@@ -123,122 +164,277 @@ export default function AdminDashboard() {
               Platform Command Hub ⚡
             </h1>
             <p className="text-slate-300 text-sm mt-1 max-w-xl">
-              Real-time monitoring of customer subscriptions, vehicle connections, and instant emergency QR scanning.
+              Live sales performance, active tag connections, vehicle records, and instant masked calling.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              onClick={fetchDashboard}
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
             <Link
               href="/admin/qr"
-              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5"
+              className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5"
             >
-              🔳 Manage QRs
+              🔳 QR Inventory
             </Link>
             <Link
               href="/admin/customers"
-              className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md border border-white/20 transition-all"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-all"
             >
               👥 Customers
             </Link>
             <Link
-              href="/admin/vehicles"
-              className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md border border-white/20 transition-all"
+              href="/admin/reports"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-all"
             >
-              🚘 Vehicles
+              📊 Reports
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Top 4 Metrics Cards - Modern App Design with Left Border & Light Green Accents */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Card 1: Customers */}
+      {/* QR Batch Based Filter Option (Requirement) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-cyan-600" />
+          <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+            QR Batch Data View:
+          </span>
+          {selectedBatch && (
+            <span className="text-xs font-mono font-black text-cyan-800 bg-cyan-100 px-2 py-0.5 rounded-md border border-cyan-200">
+              {selectedBatch.batch_code}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setSelectedBatchId("ALL")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              selectedBatchId === "ALL"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            All Batches (Global)
+          </button>
+          {batchSummaries.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setSelectedBatchId(b.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                selectedBatchId === b.id
+                  ? "bg-cyan-600 text-white shadow-sm"
+                  : "bg-cyan-50 text-cyan-800 hover:bg-cyan-100 border border-cyan-200/60"
+              }`}
+            >
+              {b.batch_code}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Top 5 Metrics Cards (Including Sales Count & Amount at ₹499/card) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Card 1: Total Sales (Cards Sold) */}
+        <div className="bg-white rounded-2xl p-5 border-l-[6px] border-l-emerald-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-black text-emerald-700 uppercase tracking-wider">Total Sales Count</p>
+              <h3 className="text-3xl font-black text-slate-900 mt-1">
+                {loading ? '...' : displaySalesCount}
+              </h3>
+            </div>
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl border border-emerald-100 group-hover:scale-110 transition-transform">
+              🏷️
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-emerald-700 pt-2.5 border-t border-slate-100">
+            <span>Active Cards Sold</span>
+            <span className="font-mono text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">₹499 / card</span>
+          </div>
+        </div>
+
+        {/* Card 2: Total Sales Revenue */}
+        <div className="bg-white rounded-2xl p-5 border-l-[6px] border-l-teal-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-black text-teal-700 uppercase tracking-wider">Total Sales Amount</p>
+              <h3 className="text-3xl font-black text-slate-900 mt-1">
+                {loading ? '...' : `₹${displaySalesRevenue.toLocaleString('en-IN')}`}
+              </h3>
+            </div>
+            <div className="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl border border-teal-100 group-hover:scale-110 transition-transform">
+              💰
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-teal-700 pt-2.5 border-t border-slate-100">
+            <span>Revenue Generated</span>
+            <span className="text-teal-800 font-black">Live Value</span>
+          </div>
+        </div>
+
+        {/* Card 3: Total Customers */}
         <Link
           href="/admin/customers"
-          className="bg-white rounded-2xl p-6 border-l-[6px] border-l-indigo-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-indigo-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Platform Users</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Platform Users</p>
               <h3 className="text-3xl font-black text-slate-800 mt-1">
                 {loading ? '...' : data.totalCustomers}
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl border border-indigo-100 group-hover:scale-110 transition-transform">
+            <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl border border-indigo-100 group-hover:scale-110 transition-transform">
               👥
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500 pt-3 border-t border-slate-50">
-            <span>Verified accounts</span>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
+            <span>Registered Owners</span>
             <span className="text-indigo-600">View list ➔</span>
           </div>
         </Link>
 
-        {/* Card 2: Total QR Codes */}
+        {/* Card 4: Total QR Codes */}
         <Link
           href="/admin/qr"
-          className="bg-white rounded-2xl p-6 border-l-[6px] border-l-cyan-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-cyan-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Total QR Codes</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Total QR Codes</p>
               <h3 className="text-3xl font-black text-slate-800 mt-1">
-                {loading ? '...' : data.totalQRs}
+                {loading ? '...' : displayTotalQRs}
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl border border-cyan-100 group-hover:scale-110 transition-transform">
+            <div className="w-11 h-11 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl border border-cyan-100 group-hover:scale-110 transition-transform">
               🔳
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500 pt-3 border-t border-slate-50">
-            <span>Inventory generated</span>
-            <span className="text-cyan-600">Scan status ➔</span>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
+            <span>Available: {displayAvailableQRs}</span>
+            <span className="text-cyan-600">Inventory ➔</span>
           </div>
         </Link>
 
-        {/* Card 3: Active QR Codes - Light Green styling as requested */}
-        <Link
-          href="/admin/qr"
-          className="bg-emerald-50/40 rounded-2xl p-6 border-l-[6px] border-l-emerald-500 border border-emerald-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-black text-emerald-700 uppercase tracking-wider">Active QR Codes</p>
-              <h3 className="text-3xl font-black text-emerald-800 mt-1">
-                {loading ? '...' : activeCount}
-              </h3>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl border border-emerald-200 group-hover:scale-110 transition-transform">
-              🟢
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-xs font-bold text-emerald-700 pt-3 border-t border-emerald-100">
-            <span>Ready for scans</span>
-            <span className="text-emerald-800 font-black">Live & connected ➔</span>
-          </div>
-        </Link>
-
-        {/* Card 4: Registered Vehicles */}
+        {/* Card 5: Registered Vehicles */}
         <Link
           href="/admin/vehicles"
-          className="bg-white rounded-2xl p-6 border-l-[6px] border-l-blue-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-blue-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Registered Vehicles</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Registered Vehicles</p>
               <h3 className="text-3xl font-black text-slate-800 mt-1">
                 {loading ? '...' : data.totalVehicles}
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl border border-blue-100 group-hover:scale-110 transition-transform">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl border border-blue-100 group-hover:scale-110 transition-transform">
               🚘
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500 pt-3 border-t border-slate-50">
-            <span>Cars, Bikes & Fleet</span>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
+            <span>Fleet registered</span>
             <span className="text-blue-600">Garage list ➔</span>
           </div>
         </Link>
       </div>
+
+      {/* QR Batch Performance & Sales Breakdown Table (Requirement) */}
+      {batchSummaries.length > 0 && (
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📦</span>
+                <h3 className="text-xl font-black text-slate-900">QR Batch Sales & Inventory Performance</h3>
+              </div>
+              <p className="text-xs text-slate-400 font-semibold mt-1">
+                Batch-wise sales conversion based on active tags at ₹499/card
+              </p>
+            </div>
+            <Link
+              href="/admin/qr"
+              className="text-xs font-black text-cyan-600 hover:text-cyan-700 flex items-center gap-1"
+            >
+              <span>+ Generate New Batch</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100 text-xs font-black text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Batch Code</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Total QRs</th>
+                  <th className="py-3 px-4">Cards Sold (Active)</th>
+                  <th className="py-3 px-4">Available Stock</th>
+                  <th className="py-3 px-4">Sales Revenue (₹499/card)</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Filter</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs font-medium">
+                {batchSummaries.map((batch) => {
+                  const isSelected = selectedBatchId === batch.id;
+                  return (
+                    <tr 
+                      key={batch.id} 
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isSelected ? "bg-cyan-50/60 font-bold" : ""
+                      }`}
+                    >
+                      <td className="py-3.5 px-4 font-mono font-black text-slate-900">
+                        🏷️ {batch.batch_code}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-600">
+                        {batch.product_type || "Vehicle"}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-800">
+                        {batch.total}
+                      </td>
+                      <td className="py-3.5 px-4 font-black text-emerald-700">
+                        ✅ {batch.sold} sold
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-cyan-700">
+                        📦 {batch.available} stock
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-black text-teal-800 text-sm">
+                        ₹{(batch.sold * 499).toLocaleString('en-IN')}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
+                          {batch.status || "COMPLETED"}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => setSelectedBatchId(isSelected ? "ALL" : batch.id)}
+                          className={`px-3 py-1.5 rounded-xl font-black text-[11px] transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-slate-900 text-white"
+                              : "bg-slate-100 text-slate-700 hover:bg-cyan-100 hover:text-cyan-900"
+                          }`}
+                        >
+                          {isSelected ? "Active View" : "View Batch"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Circle / Donut Charts Section (Pie Charts) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -251,11 +447,11 @@ export default function AdminDashboard() {
                 <h3 className="text-xl font-black text-slate-800">QR Code Status Distribution</h3>
               </div>
               <p className="text-xs text-slate-400 font-semibold mt-1">
-                Breakdown of active assigned tags vs available inventory
+                {selectedBatch ? `Batch ${selectedBatch.batch_code} breakdown` : "Global active assigned tags vs available inventory"}
               </p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-              {data.totalQRs} Total
+              {displayTotalQRs} Total
             </span>
           </div>
 
@@ -288,8 +484,8 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
             {/* Center Stat */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-black text-slate-800">{activeCount}</span>
-              <span className="text-[11px] font-black uppercase text-emerald-600 tracking-wider">Active</span>
+              <span className="text-3xl font-black text-slate-800">{displaySalesCount}</span>
+              <span className="text-[11px] font-black uppercase text-emerald-600 tracking-wider">Sold Active</span>
             </div>
           </div>
 
@@ -307,7 +503,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Circle Chart 2: Platform Asset Balance */}
+        {/* Circle Chart 2: Platform Asset Ratio */}
         <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -316,11 +512,11 @@ export default function AdminDashboard() {
                 <h3 className="text-xl font-black text-slate-800">Platform Asset Ratio</h3>
               </div>
               <p className="text-xs text-slate-400 font-semibold mt-1">
-                Correlation between platform customers, fleet, and linked tags
+                Correlation between platform customers, fleet, and cards sold
               </p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">
-              Live Balance
+              Live Ratio
             </span>
           </div>
 

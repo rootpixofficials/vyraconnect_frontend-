@@ -141,6 +141,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
     emergencyMobile: "",
   });
   const [registering, setRegistering] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
 
   // Safe phone dialer fallback for mobile web
   const triggerSafeDial = (phoneNumber: string) => {
@@ -158,37 +159,94 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setRegistrationError(null);
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateRegistrationForm = (): string | null => {
+    // 1. Full name validation: at least 3 letters
+    const trimmedName = formData.name.trim();
+    if (trimmedName.length < 3) {
+      return "Full Name must be at least 3 letters.";
+    }
+
+    // 2. Mobile validation: exactly 10 digits
+    const cleanMobile = formData.mobile.replace(/[^0-9]/g, "");
+    if (cleanMobile.length !== 10) {
+      return "Mobile number must be exactly 10 digits.";
+    }
+
+    // 3. Vehicle type validation: required
+    if (!formData.vehicleType || !formData.vehicleType.trim()) {
+      return "Please select a vehicle type.";
+    }
+
+    // 4. Vehicle plate validation: KL00X0000, KL00XX0000, or 24BH1245
+    const cleanPlate = formData.registrationNumber.replace(/\s+/g, "").toUpperCase();
+    if (!cleanPlate) {
+      return "Vehicle registration number is required.";
+    }
+    const standardPlateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
+    const bhPlateRegex = /^[0-9]{2}BH[0-9]{4}[A-Z]{0,2}$/;
+    if (!standardPlateRegex.test(cleanPlate) && !bhPlateRegex.test(cleanPlate)) {
+      return "Invalid vehicle number. Accepted formats: KL00X0000 (e.g. KL55A1234), KL00XX0000 (e.g. KL55AC1818), or 24BH1245.";
+    }
+
+    // 5. Emergency Mobile if provided: must be 10 digits
+    if (formData.emergencyMobile && formData.emergencyMobile.trim()) {
+      const cleanEmerMobile = formData.emergencyMobile.replace(/[^0-9]/g, "");
+      if (cleanEmerMobile.length !== 10) {
+        return "Emergency contact mobile number must be exactly 10 digits.";
+      }
+    }
+
+    return null;
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resolvedToken) return;
 
+    setRegistrationError(null);
+
+    // Client-side validations
+    const validationError = validateRegistrationForm();
+    if (validationError) {
+      setRegistrationError(validationError);
+      return;
+    }
+
     setRegistering(true);
     try {
-      await axios.post(`https://api.vyraconnect.in/api/scan/${resolvedToken}/register`, formData);
+      const cleanPlate = formData.registrationNumber.replace(/\s+/g, "").toUpperCase();
+      const payload = {
+        ...formData,
+        registrationNumber: cleanPlate,
+        mobile: formData.mobile.replace(/[^0-9]/g, "")
+      };
+
+      await axios.post(`https://api.vyraconnect.in/api/scan/${resolvedToken}/register`, payload);
 
       setQrData({
         id: qrData?.id || "qr-registered",
         status: "ACTIVE",
         customer: {
-          full_name: formData.name,
-          mobile: formData.mobile,
-          email: formData.email,
+          full_name: formData.name.trim(),
+          mobile: formData.mobile.replace(/[^0-9]/g, ""),
+          email: formData.email.trim() || undefined,
           vehicleType: formData.vehicleType,
-          registrationNumber: formData.registrationNumber,
-          emergency_contacts: [
+          registrationNumber: cleanPlate,
+          emergency_contacts: formData.emergencyMobile ? [
             {
-              name: formData.emergencyName,
-              relationship: formData.emergencyRelationship,
-              mobile: formData.emergencyMobile,
+              name: formData.emergencyName || "Emergency Contact",
+              relationship: formData.emergencyRelationship || "Relative",
+              mobile: formData.emergencyMobile.replace(/[^0-9]/g, ""),
               is_primary: true
             }
-          ],
+          ] : [],
           vehicles: [
             {
-              registration_number: formData.registrationNumber,
+              registration_number: cleanPlate,
               vehicle_type: formData.vehicleType,
               status: "ACTIVE"
             }
@@ -197,7 +255,8 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
       });
     } catch (err: any) {
       console.error("Error registering tag:", err);
-      alert(err.response?.data?.error || "Failed to register. Please check your inputs and try again.");
+      const errMsg = err.response?.data?.error || "Failed to register. Please check your inputs and try again.";
+      setRegistrationError(errMsg);
     } finally {
       setRegistering(false);
     }
@@ -252,6 +311,22 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
+            {registrationError && (
+              <div className="p-4 rounded-2xl bg-red-950/90 border border-red-500/60 text-red-200 text-xs flex items-start gap-2.5 shadow-xl animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold leading-relaxed">{registrationError}</p>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setRegistrationError(null)}
+                  className="text-red-400 hover:text-white p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             <div className="bg-blue-950/40 rounded-2xl p-4 border border-blue-500/30 space-y-3.5">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300">
                 <Car className="w-4 h-4 text-cyan-400" />
@@ -265,11 +340,13 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                   name="name"
                   id="name"
                   required
+                  minLength={3}
                   value={formData.name}
                   onChange={handleInputChange}
                   className="block w-full rounded-xl border border-white/15 bg-black/40 text-white text-sm p-3 focus:border-cyan-400 outline-none"
-                  placeholder="John Doe"
+                  placeholder="e.g. Mohammed Nihal"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">At least 3 letters required</p>
               </div>
 
               <div>
@@ -279,11 +356,13 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                   name="mobile"
                   id="mobile"
                   required
+                  maxLength={10}
                   value={formData.mobile}
                   onChange={handleInputChange}
                   className="block w-full rounded-xl border border-white/15 bg-black/40 text-white text-sm p-3 font-mono focus:border-cyan-400 outline-none"
-                  placeholder="9876543210"
+                  placeholder="e.g. 9746910890"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">Must be exactly 10 digits</p>
               </div>
 
               <div>
@@ -295,7 +374,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                   value={formData.email}
                   onChange={handleInputChange}
                   className="block w-full rounded-xl border border-white/15 bg-black/40 text-white text-sm p-3 focus:border-cyan-400 outline-none"
-                  placeholder="john@example.com"
+                  placeholder="john@example.com (optional)"
                 />
               </div>
 
@@ -327,8 +406,9 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                     value={formData.registrationNumber}
                     onChange={handleInputChange}
                     className="block w-full rounded-xl border border-white/15 bg-black/40 text-white text-sm p-3 uppercase font-mono focus:border-cyan-400 outline-none"
-                    placeholder="KL 55 BH 1234"
+                    placeholder="e.g. KL55AC1818"
                   />
+                  <p className="text-[10px] text-cyan-300/80 mt-1">e.g. KL00X0000, KL00XX0000, or 24BH1245</p>
                 </div>
               </div>
             </div>

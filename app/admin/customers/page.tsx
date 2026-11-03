@@ -5,7 +5,7 @@ import axios from "axios";
 import { 
   Users, Search, Filter, Plus, Edit2, Trash2, Eye, ShieldAlert, 
   Phone, Mail, Car, AlertTriangle, Check, Copy, UserCheck, X,
-  LayoutGrid, Table as TableIcon, HeartHandshake
+  LayoutGrid, Table as TableIcon, HeartHandshake, QrCode, Tag
 } from "lucide-react";
 
 interface EmergencyContactItem {
@@ -24,6 +24,15 @@ interface VehicleItem {
   model?: string;
 }
 
+interface QrCodeItem {
+  id: string;
+  qr_serial: string;
+  qr_token?: string;
+  status?: string;
+  product_type?: string;
+  activated_at?: string;
+}
+
 interface Customer {
   id: string;
   customer_code?: string;
@@ -35,6 +44,21 @@ interface Customer {
   created_at?: string;
   emergency_contacts?: EmergencyContactItem[];
   vehicles?: VehicleItem[];
+  qr_codes?: QrCodeItem[];
+}
+
+// Generate customer initials avatar text: first letters of first two words, or first two letters of single word
+function getCustomerInitials(fullName?: string): string {
+  if (!fullName || !fullName.trim()) return "VC";
+  const words = fullName.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  if (words.length === 1) {
+    const word = words[0];
+    return word.length >= 2 ? word.substring(0, 2).toUpperCase() : word[0].toUpperCase();
+  }
+  return "VC";
 }
 
 export default function CustomersPage() {
@@ -56,7 +80,10 @@ export default function CustomersPage() {
     emergencyName: "",
     emergencyMobile: "",
     emergencyRelationship: "Relative",
-    emergencyContactId: ""
+    emergencyContactId: "",
+    vehicleId: "",
+    vehiclePlate: "",
+    vehicleType: "Four Wheeler"
   });
 
   useEffect(() => {
@@ -78,6 +105,7 @@ export default function CustomersPage() {
     if (customer) {
       setSelectedCustomer(customer);
       const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
+      const primaryVeh = customer.vehicles?.[0];
       setFormData({
         full_name: customer.full_name || customer.name || "",
         mobile: customer.mobile || "",
@@ -85,7 +113,10 @@ export default function CustomersPage() {
         emergencyName: primaryEmer?.name || "",
         emergencyMobile: primaryEmer?.mobile || "",
         emergencyRelationship: primaryEmer?.relationship || "Relative",
-        emergencyContactId: primaryEmer?.id || ""
+        emergencyContactId: primaryEmer?.id || "",
+        vehicleId: primaryVeh?.id || "",
+        vehiclePlate: primaryVeh?.registration_number || "",
+        vehicleType: primaryVeh?.vehicle_type || "Four Wheeler"
       });
     } else {
       setSelectedCustomer(null);
@@ -96,7 +127,10 @@ export default function CustomersPage() {
         emergencyName: "",
         emergencyMobile: "",
         emergencyRelationship: "Relative",
-        emergencyContactId: ""
+        emergencyContactId: "",
+        vehicleId: "",
+        vehiclePlate: "",
+        vehicleType: "Four Wheeler"
       });
     }
     setIsModalOpen(true);
@@ -110,10 +144,14 @@ export default function CustomersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        vehiclePlate: formData.vehiclePlate ? formData.vehiclePlate.trim().toUpperCase() : undefined
+      };
       if (selectedCustomer) {
-        await axios.patch(`https://api.vyraconnect.in/api/admin/customers/${selectedCustomer.id}`, formData);
+        await axios.patch(`https://api.vyraconnect.in/api/admin/customers/${selectedCustomer.id}`, payload);
       } else {
-        await axios.post(`https://api.vyraconnect.in/api/admin/customers`, formData);
+        await axios.post(`https://api.vyraconnect.in/api/admin/customers`, payload);
       }
       setIsModalOpen(false);
       fetchCustomers();
@@ -162,12 +200,17 @@ export default function CustomersPage() {
   // Filtered customer list
   const filteredCustomers = customers.filter(c => {
     const primaryEmer = c.emergency_contacts?.find(e => e.is_primary) || c.emergency_contacts?.[0];
+    const qrSerials = (c.qr_codes || []).map(q => q.qr_serial).join(" ");
+    const vehiclePlates = (c.vehicles || []).map(v => v.registration_number).join(" ");
+    
     const matchesSearch =
       (c.full_name || c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.mobile || "").includes(searchTerm) ||
       (c.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (primaryEmer?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (primaryEmer?.mobile || "").includes(searchTerm);
+      (primaryEmer?.mobile || "").includes(searchTerm) ||
+      qrSerials.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehiclePlates.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "ALL" ||
@@ -199,7 +242,7 @@ export default function CustomersPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Customer Management</h1>
           </div>
           <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1">
-            Registered vehicle owners, contact details, and emergency safety contacts.
+            Registered vehicle owners, assigned QR scanner cards, and emergency safety contacts.
           </p>
         </div>
 
@@ -220,7 +263,7 @@ export default function CustomersPage() {
         <div className="relative w-full lg:w-80">
           <input
             type="text"
-            placeholder="🔍 Search name, phone, emergency..."
+            placeholder="🔍 Search name, phone, plate, QR..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-emerald-500 focus:bg-white transition-all"
@@ -241,7 +284,7 @@ export default function CustomersPage() {
           <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setStatusFilter("ALL")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 statusFilter === "ALL"
                   ? "bg-slate-900 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -251,7 +294,7 @@ export default function CustomersPage() {
             </button>
             <button
               onClick={() => setStatusFilter("ACTIVE")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 statusFilter === "ACTIVE"
                   ? "bg-emerald-600 text-white shadow-sm"
                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -261,7 +304,7 @@ export default function CustomersPage() {
             </button>
             <button
               onClick={() => setStatusFilter("BLOCKED")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 statusFilter === "BLOCKED"
                   ? "bg-red-600 text-white shadow-sm"
                   : "bg-red-50 text-red-700 hover:bg-red-100"
@@ -303,55 +346,58 @@ export default function CustomersPage() {
 
       {/* VIEW 1: Customer Cards Grid */}
       {viewMode === "card" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
           {filteredCustomers.length > 0 ? (
             filteredCustomers.map(customer => {
               const isBlocked = customer.status === "BLOCKED";
               const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
               const vehicles = customer.vehicles || [];
+              const qrCodes = customer.qr_codes || [];
+              const initials = getCustomerInitials(customer.full_name || customer.name);
 
               return (
                 <div
                   key={customer.id}
-                  className={`rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between border-l-[6px] ${
+                  className={`rounded-3xl p-5 sm:p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden flex flex-col justify-between border-l-[6px] ${
                     isBlocked
                       ? "border-l-red-500 bg-red-50/40 border border-red-200 hover:border-red-300"
                       : "border-l-emerald-500 bg-white border border-slate-100 hover:border-emerald-300"
                   }`}
                 >
                   <div>
-                    {/* Top Row: Avatar + Name + Status Pill */}
+                    {/* Top Row: Avatar with Customer Initials + Name + Status Pill */}
                     <div className="flex justify-between items-start gap-3 mb-4">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border shadow-sm shrink-0 ${
+                          className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm tracking-wider border shadow-sm shrink-0 select-none ${
                             isBlocked
-                              ? "bg-red-100 text-red-700 border-red-200"
-                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                              ? "bg-gradient-to-br from-red-600 to-rose-800 text-white border-red-400/40 shadow-red-200"
+                              : "bg-gradient-to-br from-emerald-600 to-teal-800 text-white border-emerald-400/40 shadow-emerald-200"
                           }`}
                         >
-                          {isBlocked ? "🚫" : "🧑‍💻"}
+                          {initials}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <h3
-                            className={`font-black text-lg truncate ${
+                            className={`font-black text-base sm:text-lg leading-tight truncate ${
                               isBlocked ? "text-red-950" : "text-slate-900"
                             }`}
+                            title={customer.full_name || customer.name || "Customer"}
                           >
-                            {customer.full_name || customer.name || "Unnamed Customer"}
+                            {customer.full_name || customer.name || "Customer"}
                           </h3>
                           <p
-                            className={`text-xs font-mono font-bold ${
+                            className={`text-xs font-mono font-bold mt-1 ${
                               isBlocked ? "text-red-500" : "text-slate-400"
                             }`}
                           >
-                            🆔 {customer.id.substring(0, 8)}
+                            🆔 {customer.customer_code || customer.id.substring(0, 8)}
                           </p>
                         </div>
                       </div>
 
                       <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-black border shrink-0 uppercase tracking-wider ${
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black border shrink-0 uppercase tracking-wider ${
                           isBlocked
                             ? "bg-red-100 text-red-700 border-red-300"
                             : "bg-emerald-100 text-emerald-800 border-emerald-300"
@@ -359,6 +405,38 @@ export default function CustomersPage() {
                       >
                         {isBlocked ? "BLOCKED" : "ACTIVE"}
                       </span>
+                    </div>
+
+                    {/* Registered Card / Scanner Section */}
+                    <div className="mb-3 p-3 rounded-2xl bg-cyan-50/70 border border-cyan-200/70 text-xs">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-cyan-800">
+                          <QrCode className="w-3.5 h-3.5 text-cyan-600" />
+                          <span>Registered Tag / Card</span>
+                        </span>
+                        {qrCodes.length > 0 && (
+                          <span className="text-[10px] font-black bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full border border-cyan-200">
+                            {qrCodes[0].status || "ACTIVE"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="pt-0.5">
+                        {qrCodes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {qrCodes.map((qr) => (
+                              <span
+                                key={qr.id || qr.qr_serial}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white text-cyan-950 font-mono font-black text-xs border border-cyan-200 shadow-2xs"
+                              >
+                                <Tag className="w-3 h-3 text-cyan-600" />
+                                <span>{qr.qr_serial}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">No Scanner Card Linked</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Customer Information Badges */}
@@ -376,7 +454,7 @@ export default function CustomersPage() {
                         </span>
                         <button
                           onClick={() => copyToClipboard(customer.mobile)}
-                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold"
+                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold cursor-pointer"
                           title="Copy phone"
                         >
                           {copiedNumber === customer.mobile ? "✓ Copied" : "Copy"}
@@ -388,9 +466,9 @@ export default function CustomersPage() {
                       </p>
                     </div>
 
-                    {/* Emergency Contact Badge (HIGHLIGHTED) */}
+                    {/* Emergency Contact Badge */}
                     {primaryEmer ? (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200/70 rounded-2xl text-xs space-y-1">
+                      <div className="mb-3 p-3 bg-red-50 border border-red-200/70 rounded-2xl text-xs space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-red-600">
                             <HeartHandshake className="w-3.5 h-3.5" />
@@ -406,7 +484,7 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="mb-4 p-2.5 bg-amber-50/80 border border-amber-200/60 rounded-2xl flex items-center justify-between text-xs">
+                      <div className="mb-3 p-2.5 bg-amber-50/80 border border-amber-200/60 rounded-2xl flex items-center justify-between text-xs">
                         <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                           <span>No Emergency Contact</span>
@@ -485,96 +563,138 @@ export default function CustomersPage() {
 
       {/* VIEW 2: Tabular Table View */}
       {viewMode === "table" && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  <th className="py-4 px-5">Customer</th>
-                  <th className="py-4 px-5">Mobile &amp; Email</th>
-                  <th className="py-4 px-5">Emergency Contact</th>
-                  <th className="py-4 px-5">Vehicles</th>
-                  <th className="py-4 px-5">Status</th>
-                  <th className="py-4 px-5 text-right">Actions</th>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="py-3.5 px-5 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="py-3.5 px-4 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Contact Info
+                  </th>
+                  <th className="py-3.5 px-4 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Registered Tag / Card
+                  </th>
+                  <th className="py-3.5 px-4 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Emergency Contact
+                  </th>
+                  <th className="py-3.5 px-4 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Vehicles
+                  </th>
+                  <th className="py-3.5 px-4 text-left font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="py-3.5 px-5 text-right font-black text-xs text-slate-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 text-sm font-medium">
                 {filteredCustomers.length > 0 ? (
                   filteredCustomers.map(customer => {
                     const isBlocked = customer.status === "BLOCKED";
                     const primaryEmer = customer.emergency_contacts?.find(e => e.is_primary) || customer.emergency_contacts?.[0];
                     const vehicles = customer.vehicles || [];
+                    const qrCodes = customer.qr_codes || [];
+                    const initials = getCustomerInitials(customer.full_name || customer.name);
 
                     return (
-                      <tr 
+                      <tr
                         key={customer.id}
                         className={`hover:bg-slate-50/80 transition-colors ${
                           isBlocked ? "bg-red-50/20" : ""
                         }`}
                       >
-                        {/* Customer Column */}
+                        {/* Customer */}
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-200">
-                              {customer.full_name?.charAt(0).toUpperCase() || "U"}
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border shrink-0 ${
+                                isBlocked
+                                  ? "bg-red-600 text-white border-red-500"
+                                  : "bg-emerald-600 text-white border-emerald-500"
+                              }`}
+                            >
+                              {initials}
                             </div>
-                            <div>
-                              <div className="font-black text-slate-900 text-sm">
-                                {customer.full_name || customer.name || "Unnamed Customer"}
-                              </div>
-                              <div className="text-[10px] font-mono text-slate-400 font-bold">
-                                ID: {customer.id.substring(0, 8)}
-                              </div>
+                            <div className="min-w-0">
+                              <p className="font-black text-slate-900 leading-tight">
+                                {customer.full_name || customer.name || "Customer"}
+                              </p>
+                              <p className="text-[11px] font-mono font-bold text-slate-400 mt-0.5">
+                                🆔 {customer.customer_code || customer.id.substring(0, 8)}
+                              </p>
                             </div>
                           </div>
                         </td>
 
-                        {/* Mobile & Email */}
-                        <td className="py-4 px-5">
-                          <div className="font-mono font-bold text-slate-800 flex items-center gap-1.5">
-                            <Phone className="w-3 h-3 text-slate-400" />
-                            <span>{customer.mobile || "No Mobile"}</span>
+                        {/* Contact Info */}
+                        <td className="py-4 px-4">
+                          <div className="space-y-0.5 text-xs">
+                            <p className="font-mono font-bold text-slate-800 flex items-center gap-1.5">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              <span>{customer.mobile || "N/A"}</span>
+                            </p>
+                            {customer.email && (
+                              <p className="text-slate-400 text-[11px] truncate max-w-[150px]">
+                                {customer.email}
+                              </p>
+                            )}
                           </div>
-                          <div className="text-[11px] text-slate-400 truncate max-w-[180px]">
-                            {customer.email || "No Email"}
-                          </div>
+                        </td>
+
+                        {/* Registered Tag / Card */}
+                        <td className="py-4 px-4">
+                          {qrCodes.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {qrCodes.map((q) => (
+                                <span
+                                  key={q.id || q.qr_serial}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-50 text-cyan-900 font-mono font-black text-xs border border-cyan-200"
+                                >
+                                  <Tag className="w-3 h-3 text-cyan-600" />
+                                  <span>{q.qr_serial}</span>
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-xs italic">No Tag</span>
+                          )}
                         </td>
 
                         {/* Emergency Contact */}
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-4">
                           {primaryEmer ? (
-                            <div className="p-2 bg-red-50 border border-red-200 rounded-xl max-w-[220px]">
-                              <div className="flex items-center justify-between gap-1 text-[10px] font-black text-red-700">
-                                <span className="truncate">{primaryEmer.name}</span>
-                                <span className="bg-red-200/70 text-red-800 px-1.5 py-0.2 rounded text-[9px] uppercase">
-                                  {primaryEmer.relationship || "Relative"}
+                            <div className="text-xs">
+                              <p className="font-bold text-slate-900 flex items-center gap-1">
+                                <HeartHandshake className="w-3 h-3 text-red-500" />
+                                <span>{primaryEmer.name}</span>
+                                <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                                  ({primaryEmer.relationship || "Relative"})
                                 </span>
-                              </div>
-                              <div className="font-mono font-bold text-red-800 text-[11px] mt-0.5">
+                              </p>
+                              <p className="font-mono font-bold text-red-700 text-[11px] mt-0.5">
                                 {primaryEmer.mobile}
-                              </div>
+                              </p>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => handleOpenModal(customer)}
-                              className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 cursor-pointer flex items-center gap-1"
-                            >
-                              <AlertTriangle className="w-3 h-3 text-amber-500" />
-                              <span>+ Add Emergency</span>
-                            </button>
+                            <span className="text-slate-400 text-xs italic">None</span>
                           )}
                         </td>
 
                         {/* Vehicles */}
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-4">
                           {vehicles.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {vehicles.map((v, i) => (
                                 <span
                                   key={v.id || i}
-                                  className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-mono font-bold border border-slate-200"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-mono font-bold border border-slate-200"
                                 >
-                                  {v.registration_number}
+                                  <Car className="w-3 h-3 text-slate-400" />
+                                  <span>{v.registration_number}</span>
                                 </span>
                               ))}
                             </div>
@@ -584,7 +704,7 @@ export default function CustomersPage() {
                         </td>
 
                         {/* Status */}
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-4">
                           <span
                             className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                               isBlocked
@@ -609,7 +729,7 @@ export default function CustomersPage() {
                             <button
                               onClick={() => handleOpenModal(customer)}
                               className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer"
-                              title="Edit Customer & Emergency Contact"
+                              title="Edit Customer, Vehicle & Emergency Contact"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -631,7 +751,7 @@ export default function CustomersPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                    <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                       No matching customer accounts found.
                     </td>
                   </tr>
@@ -667,12 +787,12 @@ export default function CustomersPage() {
                 <X className="w-4 h-4" />
               </button>
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-3xl border border-white/20 shadow-inner">
-                  {selectedCustomer.status === "BLOCKED" ? "🚫" : "👤"}
+                <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-xl font-black border border-white/20 shadow-inner">
+                  {getCustomerInitials(selectedCustomer.full_name || selectedCustomer.name)}
                 </div>
                 <div>
                   <h2 className="text-2xl font-black">{selectedCustomer.full_name || selectedCustomer.name || "Customer"}</h2>
-                  <p className="text-white/70 font-mono text-xs mt-0.5">ID: {selectedCustomer.id}</p>
+                  <p className="text-white/70 font-mono text-xs mt-0.5">ID: {selectedCustomer.customer_code || selectedCustomer.id}</p>
                   <span
                     className={`inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-black border ${
                       selectedCustomer.status === "BLOCKED"
@@ -687,7 +807,31 @@ export default function CustomersPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-4 bg-slate-50">
+            <div className="p-6 space-y-4 bg-slate-50 max-h-[75vh] overflow-y-auto">
+              {/* Registered Tag / Card in Details */}
+              <div className="bg-white p-4 rounded-2xl border border-cyan-200/80 shadow-sm space-y-2">
+                <p className="text-xs font-black text-cyan-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                  <QrCode className="w-4 h-4 text-cyan-600" />
+                  <span>Registered Scanner Card / Tag</span>
+                </p>
+                {selectedCustomer.qr_codes && selectedCustomer.qr_codes.length > 0 ? (
+                  <div className="space-y-2 pt-1">
+                    {selectedCustomer.qr_codes.map((qr) => (
+                      <div key={qr.id || qr.qr_serial} className="flex justify-between items-center text-xs">
+                        <span className="font-mono font-black text-cyan-900 bg-cyan-50 px-2.5 py-1 rounded-lg border border-cyan-200">
+                          🏷️ {qr.qr_serial}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          {qr.status || "ACTIVE"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-xs italic py-1">No scanner tag has been linked yet.</p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                   <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
@@ -734,7 +878,7 @@ export default function CustomersPage() {
                         <p className="font-mono font-black text-red-600 text-sm">{emer.mobile}</p>
                         <button
                           onClick={() => copyToClipboard(emer.mobile)}
-                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold"
+                          className="text-[10px] text-slate-400 hover:text-emerald-600 font-bold cursor-pointer"
                         >
                           {copiedNumber === emer.mobile ? "✓ Copied" : "Copy"}
                         </button>
@@ -803,10 +947,10 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* Create / Edit Modal (With Emergency Contact Fields) */}
+      {/* Create / Edit Modal (With Vehicle & Emergency Contact Fields) */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsModalOpen(false)}
         >
           <div
@@ -839,7 +983,7 @@ export default function CustomersPage() {
                     onChange={e => setFormData({ ...formData, full_name: e.target.value })}
                     className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
                     required
-                    placeholder="e.g. Muneer"
+                    placeholder="e.g. Shanavas"
                   />
                 </div>
 
@@ -868,6 +1012,45 @@ export default function CustomersPage() {
                     className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:ring-0 outline-none transition-colors"
                     placeholder="customer@example.com"
                   />
+                </div>
+
+                {/* Vehicle Details Fieldset */}
+                <div className="pt-2 border-t border-slate-200 space-y-3">
+                  <div className="flex items-center gap-1.5">
+                    <Car className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs font-black text-blue-700 uppercase tracking-wider">
+                      Vehicle Details
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Vehicle Registration Plate No.
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.vehiclePlate}
+                      onChange={e => setFormData({ ...formData, vehiclePlate: e.target.value })}
+                      className="w-full border-2 border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:border-blue-400 focus:ring-0 outline-none transition-colors font-mono uppercase"
+                      placeholder="e.g. KL55AC1818 or 24BH1245"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Vehicle Type
+                    </label>
+                    <select
+                      value={formData.vehicleType}
+                      onChange={e => setFormData({ ...formData, vehicleType: e.target.value })}
+                      className="w-full border-2 border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold focus:border-blue-400 focus:ring-0 outline-none transition-colors bg-white"
+                    >
+                      <option value="Four Wheeler">Four Wheeler</option>
+                      <option value="Two Wheeler">Two Wheeler</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Heavy Vehicle">Heavy Vehicle</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Emergency Contact Fieldset */}

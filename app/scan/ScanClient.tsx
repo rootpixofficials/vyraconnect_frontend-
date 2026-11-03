@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { 
-  PhoneCall, ShieldCheck, AlertTriangle, Users, Car, ArrowLeft, Loader2, Phone
+  PhoneCall, ShieldCheck, AlertTriangle, Users, Car, ArrowLeft, Loader2, Phone, Shield, Copy, Check, X
 } from "lucide-react";
 
 interface EmergencyContactItem {
@@ -135,7 +135,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   });
   const [registering, setRegistering] = useState(false);
 
-  // Safe phone dialer that triggers native dialer prompt without crashing Chrome iOS
+  // Safe phone dialer fallback for mobile web
   const triggerSafeDial = (phoneNumber: string) => {
     const cleanNumber = phoneNumber.replace(/[^0-9+]/g, "");
     const telUrl = `tel:${cleanNumber}`;
@@ -143,16 +143,9 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
     if (typeof window === "undefined") return;
 
     try {
-      let iframe = document.getElementById("vyra-tel-iframe") as HTMLIFrameElement;
-      if (!iframe) {
-        iframe = document.createElement("iframe");
-        iframe.id = "vyra-tel-iframe";
-        iframe.style.display = "none";
-        document.body.appendChild(iframe);
-      }
-      iframe.src = telUrl;
-    } catch {
       window.location.href = telUrl;
+    } catch {
+      window.open(telUrl, "_self");
     }
   };
 
@@ -450,26 +443,20 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
   const ownerMobile = customer?.mobile ? String(customer.mobile) : undefined;
   const emerMobile = emergencyMobile ? String(emergencyMobile) : undefined;
 
-  // Direct 1-Tap Masked Call State (Option 1: No Typing Required)
+  // Direct 1-Tap Masked Call State with Permission Modal
   const [activeCallTarget, setActiveCallTarget] = useState<"owner" | "emergency" | null>(null);
   const [activeCallMessage, setActiveCallMessage] = useState<string | null>(null);
+  const [permissionModalTarget, setPermissionModalTarget] = useState<"owner" | "emergency" | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
 
-  const handleDirect1TapCall = (targetType: "owner" | "emergency") => {
+  const requestCallPermission = (targetType: "owner" | "emergency") => {
     const isEmergency = targetType === "emergency";
     const targetMobile = isEmergency ? emerMobile : ownerMobile;
     const targetName = isEmergency ? emergencyName : (customer?.full_name || customer?.name || "Vehicle Owner");
 
-    // 1. Prime backend router in memory immediately (0ms lookup for Exotel)
+    // Pre-prime router immediately so server is 100% prepared
     primeBackend(targetMobile, targetType, targetName);
-
-    // 2. Open native phone dialer synchronously (never blocked by mobile browser security)
-    triggerSafeDial(defaultVirtualNumber);
-
-    // 3. Display active calling feedback
-    setActiveCallTarget(targetType);
-    setActiveCallMessage(
-      `Connecting to ${isEmergency ? "Emergency Contact" : "Vehicle Owner"} via private line ${defaultVirtualNumber}. Only the receiver's phone is ringing.`
-    );
+    setPermissionModalTarget(targetType);
   };
 
   return (
@@ -541,7 +528,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
               {/* Button 1: Call Owner */}
               <button
                 type="button"
-                onClick={() => handleDirect1TapCall("owner")}
+                onClick={() => requestCallPermission("owner")}
                 className="w-full flex items-center justify-between py-4 px-5 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 hover:from-blue-500 hover:to-cyan-600 shadow-[0_4px_20px_rgba(6,182,212,0.35)] active:scale-98 border border-cyan-300/40 cursor-pointer transition text-left"
               >
                 <div className="flex items-center">
@@ -559,7 +546,7 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
               {/* Button 2: Call Emergency Contact */}
               <button
                 type="button"
-                onClick={() => handleDirect1TapCall("emergency")}
+                onClick={() => requestCallPermission("emergency")}
                 className="w-full flex items-center justify-between py-4 px-5 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 hover:from-red-500 hover:to-amber-500 shadow-[0_4px_20px_rgba(239,68,68,0.35)] active:scale-98 border border-red-300/40 cursor-pointer transition text-left"
               >
                 <div className="flex items-center">
@@ -588,14 +575,19 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
                   Calling private line <strong>{defaultVirtualNumber}</strong>. Only the receiver&apos;s phone is ringing. Your real phone number is 100% hidden.
                 </p>
                 <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => triggerSafeDial(defaultVirtualNumber)}
+                  <a
+                    href={`tel:${defaultVirtualNumber}`}
+                    onClick={() => {
+                      const isEmer = activeCallTarget === "emergency";
+                      const targetMob = isEmer ? emerMobile : ownerMobile;
+                      const targetN = isEmer ? emergencyName : (customer?.full_name || customer?.name || "Vehicle Owner");
+                      primeBackend(targetMob, activeCallTarget || "owner", targetN);
+                    }}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-lg cursor-pointer active:scale-98"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Tap to Call {defaultVirtualNumber} Again</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             )}
@@ -609,6 +601,129 @@ export default function ScanClient({ initialToken, initialQrData }: ScanClientPr
           </div>
         </div>
       </div>
+
+      {/* Permission Modal for iOS & Mobile Phone App Access */}
+      {permissionModalTarget && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setPermissionModalTarget(null)}
+        >
+          <div 
+            className="w-full max-w-sm bg-gradient-to-b from-slate-900 to-slate-950 border border-cyan-500/30 rounded-3xl p-6 shadow-2xl text-center space-y-4 relative animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setPermissionModalTarget(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Animated Permission Icon */}
+            <div className="mx-auto w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center relative">
+              <div className="absolute inset-0 rounded-3xl bg-cyan-400/20 animate-ping opacity-75" />
+              <PhoneCall className="w-8 h-8 text-cyan-400 relative z-10" />
+            </div>
+
+            {/* Title & Request explanation */}
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-400/30 text-[10px] font-black uppercase tracking-wider text-cyan-300 mb-2">
+                <Shield className="w-3 h-3 text-cyan-400" />
+                <span>Phone Access Permission</span>
+              </div>
+              <h3 className="text-xl font-black text-white">
+                Open Phone App to Call?
+              </h3>
+              <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                VyraConnect is requesting permission to launch your device&apos;s Phone dialer to connect your call with the{' '}
+                <strong className="text-cyan-300">{permissionModalTarget === 'emergency' ? 'Emergency Contact' : 'Vehicle Owner'}</strong>.
+              </p>
+            </div>
+
+            {/* Call Specs Card */}
+            <div className="bg-black/50 border border-white/10 rounded-2xl p-3.5 text-left text-xs space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Vehicle:</span>
+                <span className="font-mono font-bold text-white">{regNo}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Recipient:</span>
+                <span className="font-bold text-cyan-300">
+                  {permissionModalTarget === 'emergency' ? (emergencyName || 'Emergency Contact') : (customer?.full_name || customer?.name || 'Vehicle Owner')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Private Line:</span>
+                <span className="font-mono font-bold text-emerald-400">{defaultVirtualNumber}</span>
+              </div>
+              <div className="pt-2 border-t border-white/10 text-[11px] text-gray-400 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span>Both numbers 100% hidden. Only receiver rings.</span>
+              </div>
+            </div>
+
+            {/* iOS-Compliant Real Anchor Button */}
+            <div className="space-y-2 pt-1">
+              <a
+                href={`tel:${defaultVirtualNumber}`}
+                onClick={() => {
+                  const isEmer = permissionModalTarget === 'emergency';
+                  const targetMob = isEmer ? emerMobile : ownerMobile;
+                  const targetN = isEmer ? emergencyName : (customer?.full_name || customer?.name || 'Vehicle Owner');
+                  primeBackend(targetMob, permissionModalTarget!, targetN);
+                  setActiveCallTarget(permissionModalTarget);
+                  setActiveCallMessage(
+                    `Connecting to ${isEmer ? 'Emergency Contact' : 'Vehicle Owner'} via private line ${defaultVirtualNumber}. Only the receiver's phone is ringing.`
+                  );
+                  setPermissionModalTarget(null);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-4 px-5 rounded-2xl text-base font-extrabold text-white bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 hover:from-emerald-500 hover:to-teal-400 shadow-[0_4px_20px_rgba(16,185,129,0.4)] active:scale-98 border border-emerald-400/40 cursor-pointer transition text-center"
+              >
+                <PhoneCall className="w-5 h-5 text-white" />
+                <span>Allow &amp; Open Phone App</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setPermissionModalTarget(null)}
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+
+            {/* In-App Browser Fallback / Manual Dial Helper */}
+            <div className="pt-1 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    navigator.clipboard.writeText(defaultVirtualNumber);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2500);
+                  }
+                }}
+                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Copied {defaultVirtualNumber}!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Can&apos;t open dialer? Tap to copy {defaultVirtualNumber}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,7 +17,8 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, IndianRupee, QrCode, Users, Car, Layers, 
-  CheckCircle2, Clock, Filter, ArrowUpRight, BarChart3, RefreshCw
+  CheckCircle2, Clock, Filter, ArrowUpRight, BarChart3, RefreshCw,
+  Tag, Wallet, ShieldCheck
 } from 'lucide-react';
 
 interface BatchSummary {
@@ -198,7 +199,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* QR Batch Based Filter Option (Requirement) */}
+      {/* QR Batch Filter Selector */}
       <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-cyan-600" />
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
             QR Batch Data View:
           </span>
           {selectedBatch && (
-            <span className="text-xs font-mono font-black text-cyan-800 bg-cyan-100 px-2 py-0.5 rounded-md border border-cyan-200">
+            <span className="text-xs font-mono font-black text-cyan-800 bg-cyan-100 px-2.5 py-0.5 rounded-md border border-cyan-200">
               {selectedBatch.batch_code}
             </span>
           )}
@@ -239,114 +240,152 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Top 5 Metrics Cards (Including Sales Count & Amount at ₹499/card) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Card 1: Total Sales (Cards Sold) */}
-        <div className="bg-white rounded-2xl p-5 border-l-[6px] border-l-emerald-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-black text-emerald-700 uppercase tracking-wider">Total Sales Count</p>
-              <h3 className="text-3xl font-black text-slate-900 mt-1">
-                {loading ? '...' : displaySalesCount}
-              </h3>
+      {/* Top 5 Metrics Cards - Improved Typography, Zero Overlap & Lucide Vector Icons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5">
+        {/* Card 1: Total Sales Count */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border-l-[6px] border-l-emerald-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between min-h-[170px] group">
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 leading-tight">
+                Total Sales Count
+              </span>
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0 group-hover:scale-110 transition-transform">
+                <Tag className="w-4 h-4 text-emerald-600" />
+              </div>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl border border-emerald-100 group-hover:scale-110 transition-transform">
-              🏷️
+            <div className="flex items-baseline mt-1 mb-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {loading ? '...' : displaySalesCount}
+              </span>
+              <span className="ml-2 text-xs font-bold text-slate-400">cards</span>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-emerald-700 pt-2.5 border-t border-slate-100">
-            <span>Active Cards Sold</span>
-            <span className="font-mono text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">₹499 / card</span>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-500 text-[11px]">Active Cards</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200 shrink-0 whitespace-nowrap">
+              ₹499 / card
+            </span>
           </div>
         </div>
 
         {/* Card 2: Total Sales Revenue */}
-        <div className="bg-white rounded-2xl p-5 border-l-[6px] border-l-teal-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-black text-teal-700 uppercase tracking-wider">Total Sales Amount</p>
-              <h3 className="text-3xl font-black text-slate-900 mt-1">
-                {loading ? '...' : `₹${displaySalesRevenue.toLocaleString('en-IN')}`}
-              </h3>
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border-l-[6px] border-l-teal-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between min-h-[170px] group">
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="text-[11px] font-black uppercase tracking-wider text-teal-700 leading-tight">
+                Total Sales Amount
+              </span>
+              <div className="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 shrink-0 group-hover:scale-110 transition-transform">
+                <IndianRupee className="w-4 h-4 text-teal-600" />
+              </div>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl border border-teal-100 group-hover:scale-110 transition-transform">
-              💰
+            <div className="flex items-baseline mt-1 mb-2">
+              <span className="text-xl sm:text-2xl font-black text-teal-600 mr-0.5">₹</span>
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {loading ? '...' : displaySalesRevenue.toLocaleString('en-IN')}
+              </span>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-teal-700 pt-2.5 border-t border-slate-100">
-            <span>Revenue Generated</span>
-            <span className="text-teal-800 font-black">Live Value</span>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-500 text-[11px]">Revenue</span>
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-black border border-teal-200 shrink-0 whitespace-nowrap">
+              Active Tags
+            </span>
           </div>
         </div>
 
-        {/* Card 3: Total Customers */}
+        {/* Card 3: Platform Users */}
         <Link
           href="/admin/customers"
-          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-indigo-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-3xl p-5 sm:p-6 border-l-[6px] border-l-indigo-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between min-h-[170px] group block"
         >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Platform Users</p>
-              <h3 className="text-3xl font-black text-slate-800 mt-1">
-                {loading ? '...' : data.totalCustomers}
-              </h3>
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 leading-tight">
+                Platform Users
+              </span>
+              <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0 group-hover:scale-110 transition-transform">
+                <Users className="w-4 h-4 text-indigo-600" />
+              </div>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl border border-indigo-100 group-hover:scale-110 transition-transform">
-              👥
+            <div className="flex items-baseline mt-1 mb-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {loading ? '...' : data.totalCustomers}
+              </span>
+              <span className="ml-2 text-xs font-bold text-slate-400">owners</span>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
-            <span>Registered Owners</span>
-            <span className="text-indigo-600">View list ➔</span>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-500 text-[11px]">Verified accounts</span>
+            <span className="text-indigo-600 group-hover:text-indigo-700 flex items-center gap-0.5 text-[11px] font-black whitespace-nowrap">
+              <span>View list</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </span>
           </div>
         </Link>
 
-        {/* Card 4: Total QR Codes */}
+        {/* Card 4: Total QR Inventory */}
         <Link
           href="/admin/qr"
-          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-cyan-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-3xl p-5 sm:p-6 border-l-[6px] border-l-cyan-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between min-h-[170px] group block"
         >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Total QR Codes</p>
-              <h3 className="text-3xl font-black text-slate-800 mt-1">
-                {loading ? '...' : displayTotalQRs}
-              </h3>
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="text-[11px] font-black uppercase tracking-wider text-cyan-700 leading-tight">
+                Total QR Codes
+              </span>
+              <div className="w-10 h-10 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center border border-cyan-100 shrink-0 group-hover:scale-110 transition-transform">
+                <QrCode className="w-4 h-4 text-cyan-600" />
+              </div>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl border border-cyan-100 group-hover:scale-110 transition-transform">
-              🔳
+            <div className="flex items-baseline mt-1 mb-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {loading ? '...' : displayTotalQRs}
+              </span>
+              <span className="ml-2 text-xs font-bold text-slate-400">codes</span>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
-            <span>Available: {displayAvailableQRs}</span>
-            <span className="text-cyan-600">Inventory ➔</span>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-500 text-[11px]">Available: <strong className="text-cyan-800">{displayAvailableQRs}</strong></span>
+            <span className="text-cyan-600 group-hover:text-cyan-700 flex items-center gap-0.5 text-[11px] font-black whitespace-nowrap">
+              <span>Inventory</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </span>
           </div>
         </Link>
 
         {/* Card 5: Registered Vehicles */}
         <Link
           href="/admin/vehicles"
-          className="bg-white rounded-2xl p-5 border-l-[6px] border-l-blue-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden group block"
+          className="bg-white rounded-3xl p-5 sm:p-6 border-l-[6px] border-l-blue-500 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between min-h-[170px] group block"
         >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Registered Vehicles</p>
-              <h3 className="text-3xl font-black text-slate-800 mt-1">
-                {loading ? '...' : data.totalVehicles}
-              </h3>
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 leading-tight">
+                Fleet Garage
+              </span>
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0 group-hover:scale-110 transition-transform">
+                <Car className="w-4 h-4 text-blue-600" />
+              </div>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl border border-blue-100 group-hover:scale-110 transition-transform">
-              🚘
+            <div className="flex items-baseline mt-1 mb-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {loading ? '...' : data.totalVehicles}
+              </span>
+              <span className="ml-2 text-xs font-bold text-slate-400">vehicles</span>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2.5 border-t border-slate-100">
-            <span>Fleet registered</span>
-            <span className="text-blue-600">Garage list ➔</span>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-500 text-[11px]">Connected Fleet</span>
+            <span className="text-blue-600 group-hover:text-blue-700 flex items-center gap-0.5 text-[11px] font-black whitespace-nowrap">
+              <span>Garage list</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </span>
           </div>
         </Link>
       </div>
 
-      {/* QR Batch Performance & Sales Breakdown Table (Requirement) */}
+      {/* QR Batch Performance & Sales Breakdown Table */}
       {batchSummaries.length > 0 && (
         <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -648,7 +687,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white border border-emerald-200 flex items-center justify-center text-lg shadow-sm">
-                    🔳
+                    <QrCode className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
                     <h4 className="font-black text-slate-800 text-sm">{item.serial}</h4>

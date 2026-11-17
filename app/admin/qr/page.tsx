@@ -32,6 +32,9 @@ interface Batch {
   pdf_path?: string;
   status: string;
   created_at: string;
+  _count?: {
+    qr_codes: number;
+  };
 }
 
 export default function QRManagementPage() {
@@ -47,6 +50,10 @@ export default function QRManagementPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'AVAILABLE' | 'BLOCKED'>('ALL');
   const [selectedQrIds, setSelectedQrIds] = useState<string[]>([]);
+  
+  // Pagination State (Strictly sorted in Ascending Order)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number | 'ALL'>(50);
   
   // Generate Batch Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -396,6 +403,15 @@ export default function QRManagementPage() {
     ? [] 
     : qrs.filter(q => q.batch_id === selectedBatchId).sort(sortBySerialAsc);
 
+  // Pagination calculation for high-performance rendering of 1000+ codes
+  const totalFilteredCount = filteredQrs.length;
+  const effectivePageSize = pageSize === 'ALL' ? totalFilteredCount || 1 : pageSize;
+  const totalPages = pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(totalFilteredCount / effectivePageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * effectivePageSize;
+  const endIndex = Math.min(startIndex + effectivePageSize, totalFilteredCount);
+  const paginatedQrs = pageSize === 'ALL' ? filteredQrs : filteredQrs.slice(startIndex, startIndex + effectivePageSize);
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-20">
       {/* Header Banner */}
@@ -440,7 +456,7 @@ export default function QRManagementPage() {
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
           <button
-            onClick={() => setSelectedBatchId('ALL')}
+            onClick={() => { setSelectedBatchId('ALL'); setCurrentPage(1); }}
             className={`px-4 py-2.5 rounded-2xl font-black text-xs shrink-0 transition-all ${
               selectedBatchId === 'ALL'
                 ? 'bg-slate-900 text-white shadow-md'
@@ -451,13 +467,14 @@ export default function QRManagementPage() {
           </button>
 
           {batches.map(batch => {
-            const countInBatch = qrs.filter(q => q.batch_id === batch.id).length;
+            // Priority: direct DB _count -> batch.generated_count -> batch.quantity -> in-memory qrs
+            const countInBatch = batch._count?.qr_codes ?? ((qrs.length > 0 ? qrs.filter(q => q.batch_id === batch.id).length : 0) || batch.generated_count || batch.quantity);
             const isSelected = selectedBatchId === batch.id;
 
             return (
               <button
                 key={batch.id}
-                onClick={() => setSelectedBatchId(batch.id)}
+                onClick={() => { setSelectedBatchId(batch.id); setCurrentPage(1); }}
                 className={`px-4 py-2.5 rounded-2xl font-black text-xs shrink-0 transition-all flex items-center gap-2 ${
                   isSelected
                     ? 'bg-cyan-600 text-white shadow-md'
@@ -466,10 +483,10 @@ export default function QRManagementPage() {
               >
                 <span>📦</span>
                 <span>{batch.batch_code}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                  isSelected ? 'bg-cyan-700 text-cyan-100' : 'bg-slate-200 text-slate-600'
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  isSelected ? 'bg-cyan-700 text-cyan-100' : 'bg-slate-200 text-slate-700'
                 }`}>
-                  {countInBatch || batch.generated_count || batch.quantity}
+                  {countInBatch}
                 </span>
               </button>
             );
@@ -541,12 +558,12 @@ export default function QRManagementPage() {
               type="text"
               placeholder="🔍 Search serial, ID, customer..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold outline-none focus:border-cyan-500 focus:bg-white transition-all uppercase placeholder:normal-case"
             />
             {searchTerm && (
               <button
-                onClick={() => setSearchTerm("")}
+                onClick={() => { setSearchTerm(""); setCurrentPage(1); }}
                 className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600 font-bold"
               >
                 ✖
@@ -557,7 +574,7 @@ export default function QRManagementPage() {
           {/* Status Filter Pills */}
           <div className="flex gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
             <button
-              onClick={() => setStatusFilter('ALL')}
+              onClick={() => { setStatusFilter('ALL'); setCurrentPage(1); }}
               className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${
                 statusFilter === 'ALL'
                   ? 'bg-slate-900 text-white shadow-sm'
@@ -567,7 +584,7 @@ export default function QRManagementPage() {
               All
             </button>
             <button
-              onClick={() => setStatusFilter('ACTIVE')}
+              onClick={() => { setStatusFilter('ACTIVE'); setCurrentPage(1); }}
               className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${
                 statusFilter === 'ACTIVE'
                   ? 'bg-emerald-600 text-white shadow-sm'
@@ -577,7 +594,7 @@ export default function QRManagementPage() {
               Active
             </button>
             <button
-              onClick={() => setStatusFilter('AVAILABLE')}
+              onClick={() => { setStatusFilter('AVAILABLE'); setCurrentPage(1); }}
               className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${
                 statusFilter === 'AVAILABLE'
                   ? 'bg-cyan-600 text-white shadow-sm'
@@ -587,7 +604,7 @@ export default function QRManagementPage() {
               Available
             </button>
             <button
-              onClick={() => setStatusFilter('BLOCKED')}
+              onClick={() => { setStatusFilter('BLOCKED'); setCurrentPage(1); }}
               className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${
                 statusFilter === 'BLOCKED'
                   ? 'bg-red-600 text-white shadow-sm'
@@ -635,6 +652,39 @@ export default function QRManagementPage() {
         </div>
       </div>
 
+      {/* Pagination Summary & Page Size Controls */}
+      {!loading && filteredQrs.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white px-5 py-3.5 rounded-2xl border border-slate-100 shadow-sm text-xs">
+          <div className="font-bold text-slate-600 flex items-center gap-2">
+            <span className="text-cyan-800 font-black">
+              Showing {startIndex + 1}–{endIndex} of {totalFilteredCount.toLocaleString()} QR Codes
+            </span>
+            <span className="text-slate-500 font-mono text-[10px] bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200 uppercase font-black">
+              Ascending Order
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-bold text-[11px]">Show per page:</span>
+            <div className="flex gap-1">
+              {([50, 100, 250, 'ALL'] as const).map(size => (
+                <button
+                  key={String(size)}
+                  onClick={() => { setPageSize(size); setCurrentPage(1); }}
+                  className={`px-2.5 py-1 rounded-lg font-black text-xs transition-colors cursor-pointer ${
+                    pageSize === size
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {size === 'ALL' ? 'All' : size}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* QR Cards Grid */}
       {loading ? (
         <div className="p-16 flex flex-col items-center justify-center text-slate-500 space-y-3">
@@ -649,7 +699,7 @@ export default function QRManagementPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {filteredQrs.map((qr, idx) => {
+          {paginatedQrs.map((qr, idx) => {
             const isBlocked = qr.status === 'BLOCKED';
             const isActive = qr.status === 'ACTIVE' || qr.status === 'ACTIVATED';
             const isAssigned = qr.status === 'ASSIGNED';
@@ -842,6 +892,70 @@ export default function QRManagementPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Bottom Pagination Controls */}
+      {totalPages > 1 && pageSize !== 'ALL' && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-4 pb-2">
+          <button
+            onClick={() => setCurrentPage(1)}
+            disabled={safeCurrentPage === 1}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            « First
+          </button>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={safeCurrentPage === 1}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            ‹ Prev
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 2)
+            .reduce<(number | string)[]>((acc, p, idx, arr) => {
+              if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                acc.push('...');
+              }
+              acc.push(p);
+              return acc;
+            }, [])
+            .map((p, idx) => (
+              typeof p === 'number' ? (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-9 h-9 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    safeCurrentPage === p
+                      ? 'bg-cyan-600 text-white shadow-md'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {p}
+                </button>
+              ) : (
+                <span key={`ellipsis-${idx}`} className="px-2 text-slate-400 font-bold text-xs select-none">
+                  ...
+                </span>
+              )
+            ))}
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={safeCurrentPage === totalPages}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            Next ›
+          </button>
+          <button
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={safeCurrentPage === totalPages}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            Last »
+          </button>
         </div>
       )}
 
